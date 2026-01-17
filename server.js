@@ -1,1382 +1,163 @@
 const http = require('http');
+const { Client } = require('pg');
 const url = require('url');
-const fs = require('fs');
-const path = require('path');
 
 // Configuração do banco de dados
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_W5gUfjMrzc6v@ep-young-mode-ahdcwm6c-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
-
-let db = null;
-
-// Conectar ao banco de dados
-function conectarBanco() {
-  try {
-    const { Client } = require('pg');
-    db = new Client({ connectionString: DATABASE_URL });
-    db.connect();
-    console.log('✅ Banco de dados conectado com sucesso!');
-  } catch (err) {
-    console.error('❌ Erro ao conectar ao banco de dados:', err.message);
-  }
-}
-
-// HTML da página inicial (index.html)
-const indexHTML = `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<title>🛒 Tem Tudo – Utilidades e Variedades</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<style>
-*{box-sizing:border-box;font-family:Poppins}
-body{margin:0;background:#f2f4f7}
-body.dark{background:#111;color:#fff}
-header{background:#111;color:#fff;padding:15px;text-align:center}
-footer{text-align:center;padding:10px;font-size:13px;opacity:.7}
-.section{background:#fff;margin:20px;padding:20px;border-radius:14px}
-body.dark .section{background:#1f1f1f}
-button,input,textarea,select{
- width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid #ccc
-}
-button{background:#111;color:#fff;font-weight:600;cursor:pointer}
-
-.grid-horizontal {
-    display: flex;
-    overflow-x: auto;
-    gap: 15px;
-    padding-bottom: 15px;
-    scroll-behavior: smooth;
-}
-
-.grid-horizontal::-webkit-scrollbar {
-    height: 8px;
-}
-
-.grid-horizontal::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
-body.dark .grid-horizontal::-webkit-scrollbar-track {
-    background: #333;
-}
-
-.grid-horizontal::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
-}
-
-.grid-horizontal::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
-
-.card { 
-    position: relative; 
-    overflow: visible; 
-    background: #fff; 
-    padding: 10px; 
-    border-radius: 12px; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    flex-shrink: 0;
-    width: 220px;
-    min-width: 220px;
-}
-body.dark .card { background: #2a2a2a; }
-
-.img-container { position: relative; width: 100%; height: 150px; overflow: hidden; border-radius: 10px; cursor: crosshair; }
-.card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.1s ease; }
-.zoom-lens {
-    position: absolute;
-    border: 1px solid #d4d4d4;
-    width: 80px;
-    height: 80px;
-    background: rgba(255,255,255,0.4);
-    display: none;
-    pointer-events: none;
-}
-
-.price{color:green;font-weight:600}
-.hide{display:none}
-.admin-btn{background:#ff9800;color:#000}
-
-.chart-container { width: 80%; margin: 0 auto; height: 200px; }
-#grafico{width:100%!important;height:100%!important}
-
-#assinatura{width:240px;height:70px;border:2px dashed #999;border-radius:10px}
-body.dark #assinatura{border-color:#bbb}
-
-.prod-admin{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px;border:1px solid #ddd;border-radius:8px;margin-bottom:10px}
-.prod-admin-info{flex:1}
-.prod-admin-actions{display:flex;gap:5px}
-.prod-admin-actions button{width:auto;padding:5px 10px}
-.search-filter-container{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap}
-.search-filter-container input{flex:2;min-width:200px}
-.search-filter-container select{flex:1;min-width:150px}
-.timestamp{font-size:11px;color:#666;font-style:italic}
-body.dark .timestamp{color:#aaa}
-
-.status-icon { font-size: 18px; margin-right: 8px; }
-.status-fechado { color: #4CAF50; }
-.status-andamento { color: #FF9800; }
-
-.lote-item { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 5px; }
-.lote-header { display: flex; gap: 10px; align-items: center; }
-.lote-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; }
-.lote-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; }
-.lote-inputs input, .lote-inputs select { margin-top: 0; }
-
-.hist-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.hist-item { 
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    background: #f9f9f9;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-body.dark .hist-item {
-    background: #2a2a2a;
-    border-color: #444;
-}
-
-.hist-info { flex: 1; min-width: 200px; }
-.hist-actions { 
-    display: flex; 
-    gap: 5px; 
-    flex-wrap: wrap; 
-    justify-content: flex-end;
-    min-width: 300px;
-}
-.hist-actions button { width: auto; padding: 5px 10px; margin-top: 0; font-size: 12px; }
-
-.categoria-badge {
-    display: inline-block;
-    background: #2196F3;
-    color: white;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    margin-top: 5px;
-}
-
-.whatsapp-container {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    z-index: 1000;
-}
-
-.whatsapp-btn {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #25D366 0%, #20BA5A 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
-    transition: all 0.3s ease;
-    border: none;
-    color: white;
-    font-size: 28px;
-}
-
-.whatsapp-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.6);
-}
-
-.whatsapp-menu {
-    position: absolute;
-    bottom: 80px;
-    right: 0;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    padding: 12px;
-    min-width: 250px;
-    display: none;
-}
-
-.whatsapp-menu.show {
-    display: block;
-    animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.whatsapp-menu input {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 8px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-}
-
-.whatsapp-menu button {
-    width: 100%;
-    padding: 8px;
-    background: #25D366;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    margin-top: 0;
-}
-
-.whatsapp-menu button:hover {
-    background: #20BA5A;
-}
-
-.whatsapp-info {
-    font-size: 12px;
-    color: #666;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid #eee;
-}
-
-.whatsapp-number-display {
-    font-size: 13px;
-    color: #25D366;
-    font-weight: 600;
-    margin-top: 6px;
-}
-
-body.dark .whatsapp-menu {
-    background: #1f1f1f;
-    color: #fff;
-}
-
-body.dark .whatsapp-menu input {
-    background: #2a2a2a;
-    color: #fff;
-    border-color: #444;
-}
-
-body.dark .whatsapp-info {
-    color: #aaa;
-    border-top-color: #444;
-}
-
-.alert-incompletos {
-    background: #fff3cd;
-    border: 2px solid #ffc107;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    color: #856404;
-}
-
-body.dark .alert-incompletos {
-    background: #664d03;
-    border-color: #997404;
-    color: #ffecb5;
-}
-
-.alert-incompletos strong {
-    display: block;
-    margin-bottom: 8px;
-}
-
-.alert-incompletos button {
-    width: auto;
-    padding: 8px 15px;
-    background: #ffc107;
-    color: #000;
-    margin-top: 8px;
-}
-
-.produto-incompleto {
-    border: 2px solid #ff9800;
-    background: #fff3e0;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    display: flex;
-    gap: 15px;
-}
-
-body.dark .produto-incompleto {
-    background: #e65100;
-    border-color: #ff6f00;
-}
-
-.produto-incompleto-img {
-    width: 100px;
-    height: 100px;
-    border-radius: 8px;
-    object-fit: cover;
-    flex-shrink: 0;
-}
-
-.produto-incompleto-info {
-    flex: 1;
-}
-
-.produto-incompleto-info h5 {
-    margin-top: 0;
-    color: #e65100;
-}
-
-body.dark .produto-incompleto-info h5 {
-    color: #ffb74d;
-}
-
-.falta-info {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin: 10px 0;
-}
-
-.falta-item {
-    background: #ff5722;
-    color: white;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-}
-
-.produto-incompleto-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.produto-incompleto-actions button {
-    width: auto;
-    padding: 8px 12px;
-    font-size: 12px;
-    margin-top: 0;
-}
-
-.categoria-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    background: #f9f9f9;
-}
-
-body.dark .categoria-item {
-    background: #2a2a2a;
-    border-color: #444;
-}
-
-.categoria-item button {
-    width: auto;
-    padding: 5px 10px;
-    font-size: 12px;
-    margin-top: 0;
-}
-
-.filtro-data-container {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-}
-
-.filtro-data-container input {
-    flex: 1;
-    min-width: 150px;
-    margin-top: 0;
-}
-
-.filtro-data-container button {
-    width: auto;
-    padding: 10px 15px;
-    margin-top: 0;
-}
-
-.api-status {
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    font-size: 14px;
-}
-
-.api-status.conectado {
-    background: #c8e6c9;
-    color: #2e7d32;
-    border-left: 4px solid #4caf50;
-}
-
-.api-status.desconectado {
-    background: #ffcdd2;
-    color: #c62828;
-    border-left: 4px solid #f44336;
-}
-</style>
-</head>
-
-<body>
-
-<header>
-<h2>🛒 Tem Tudo – Utilidades e Variedades</h2>
-<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-<button onclick="toggleTheme()" style="width:auto;padding:10px 15px;">🌗 Claro / Escuro</button>
-<button onclick="sincronizarComAPI()" style="width:auto;padding:10px 15px;background:#4CAF50;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🔄 Sincronizar com API</button>
-</div>
-</header>
-
-<div id="statusAPI" class="api-status desconectado">
-⚠️ Desconectado da API
-</div>
-
-<div id="loginBox" class="section">
-<h3>Login</h3>
-<input id="loginUser" placeholder="Usuário" value="admin">
-<input id="loginSenha" placeholder="Senha" type="password" value="1234">
-<button onclick="login()">Entrar</button>
-<button onclick="esqueciSenha()" style="background:#666;">Esqueci a Senha</button>
-</div>
-
-<div id="catalogo" class="hide">
-<div class="section">
-<h3>🛍️ Catálogo</h3>
-<div class="search-filter-container">
-<input id="searchCatalogo" placeholder="Buscar produto..." oninput="renderCatalogo()">
-<select id="filterCatalogo" onchange="renderCatalogo()">
-<option value="">Todos</option>
-<option value="recente">Mais Recentes</option>
-<option value="az">A-Z</option>
-<option value="za">Z-A</option>
-</select>
-<select id="filterCategoria" onchange="renderCatalogo()">
-<option value="">Todas as Categorias</option>
-</select>
-</div>
-<div id="alertaIncompletos"></div>
-<div id="lista" class="grid-horizontal"></div>
-</div>
-
-<div class="section">
-<h3>🛒 Carrinho</h3>
-<div id="carrinhoCont"></div>
-<p>Total: <strong id="total">R$ 0.00</strong></p>
-<input id="pagamento" placeholder="Forma de Pagamento (ex: Dinheiro, Cartão, PIX)">
-<button onclick="finalizarPedido()">✅ Finalizar Pedido</button>
-<button onclick="limparCarrinho()" style="background:#f44336;">🗑️ Limpar Carrinho</button>
-</div>
-
-<button class="admin-btn" onclick="abrirAdmin()">👨‍💼 Painel Admin</button>
-<div id="admin" class="hide">
-<div class="section">
-<h3>👨‍💼 Painel Administrativo</h3>
-<button onclick="abrirAdmin()" style="background:#666;">❌ Fechar Admin</button>
-<button onclick="logout()" style="background:#f44336;">🚪 Logout</button>
-
-<h4>📦 Cadastrar Produto</h4>
-<input id="pDesc" placeholder="Descrição">
-<input id="pPreco" placeholder="Preço" type="number" step="0.01">
-<input id="pEAN" placeholder="EAN-13">
-<select id="pCategoria"></select>
-<input id="pImg" type="file" accept="image/*">
-<button onclick="salvarProduto()">💾 Salvar Produto</button>
-
-<h4>📤 Importar Produtos em Lote</h4>
-<input id="pLote" type="file" multiple accept="image/*" onchange="prepararLote(this)">
-<div id="areaLote" class="hide">
-<div id="listaLote"></div>
-<button onclick="salvarLote()">💾 Salvar Lote</button>
-</div>
-
-<h4>📂 Gerenciar Categorias</h4>
-<input id="novaCategoria" placeholder="Nome da Categoria">
-<button onclick="adicionarCategoria()">➕ Adicionar Categoria</button>
-<div id="listaCategoriasAdmin"></div>
-
-<h4>⚠️ Produtos Incompletos</h4>
-<div id="produtosIncompletos"></div>
-
-<h4>📋 Histórico de Pedidos</h4>
-<div class="filtro-data-container">
-<input id="filtroDataInicio" type="date" placeholder="Data Início">
-<input id="filtroDataFim" type="date" placeholder="Data Fim">
-<button onclick="filtrarPorData()">🔍 Filtrar</button>
-</div>
-<div id="listaHistorico" class="hist-container"></div>
-<div id="historicoAdmin"></div>
-
-<h4>📊 Gráfico de Vendas</h4>
-<div class="chart-container">
-<canvas id="grafico"></canvas>
-</div>
-
-<h4>✍️ Assinatura Digital</h4>
-<canvas id="assinatura"></canvas>
-<button onclick="limparAssinatura()">🗑️ Limpar</button>
-<button onclick="exportarAssinatura()">💾 Salvar Assinatura</button>
-
-<h4>📱 WhatsApp</h4>
-<input id="whatsappInput" placeholder="Número WhatsApp (ex: 5511999999999)">
-<button onclick="salvarWhatsapp()">💾 Salvar Número</button>
-<p id="whatsappDisplay"></p>
-</div>
-
-<div class="whatsapp-container">
-<button class="whatsapp-btn" onclick="toggleWhatsappMenu()">💬</button>
-<div id="whatsappMenu" class="whatsapp-menu">
-<input id="whatsappMsg" placeholder="Digite sua mensagem...">
-<button onclick="enviarWhatsapp()">Enviar</button>
-<div class="whatsapp-info">
-<p>Envie mensagens direto para o WhatsApp</p>
-<div id="whatsappNumberDisplay" class="whatsapp-number-display"></div>
-</div>
-</div>
-</div>
-
-</div>
-
-<footer>
-<p>© 2026 Tem Tudo - Utilidades e Variedades | Desenvolvido por Andrews Pablo</p>
-</footer>
-
-<script>
-const API_URL = 'https://temtudo1.onrender.com/api';
-
-async function verificarConexaoAPI() {
-  try {
-    const response = await fetch(\`\${API_URL}/health\`);
-    const data = await response.json();
-    if (data.success) {
-      atualizarStatusAPI(true);
-      console.log('✅ Conectado à API');
-      return true;
-    }
-  } catch (err) {
-    atualizarStatusAPI(false);
-    console.error('❌ Erro ao conectar à API:', err);
-    return false;
-  }
-}
-
-function atualizarStatusAPI(conectado) {
-  const statusDiv = document.getElementById('statusAPI');
-  if (conectado) {
-    statusDiv.className = 'api-status conectado';
-    statusDiv.innerHTML = '✅ Conectado à API - Dados sincronizados com o banco de dados';
-  } else {
-    statusDiv.className = 'api-status desconectado';
-    statusDiv.innerHTML = '⚠️ Desconectado da API - Usando dados locais (localStorage)';
-  }
-}
-
-async function sincronizarComAPI() {
-  console.log('🔄 Sincronizando com API...');
-  
-  if (produtos.length > 0) {
-    for (const produto of produtos) {
-      await criarProduto({
-        name: produto.desc,
-        description: produto.desc,
-        price: produto.preco,
-        category_id: null,
-        image_url: produto.img,
-        stock: 10
-      });
-    }
-    console.log(\`✅ \${produtos.length} produtos sincronizados\`);
-  }
-  
-  if (categorias.length > 0) {
-    for (const categoria of categorias) {
-      await criarCategoria({
-        name: categoria,
-        description: categoria
-      });
-    }
-    console.log(\`✅ \${categorias.length} categorias sincronizadas\`);
-  }
-  
-  alert('✅ Dados sincronizados com sucesso!');
-}
-
-async function criarProduto(produto) {
-  try {
-    const response = await fetch(\`\${API_URL}/products\`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(produto)
-    });
-    const data = await response.json();
-    if (data.success) {
-      console.log('✅ Produto criado:', data.data);
-      return data.data;
-    }
-  } catch (err) {
-    console.error('Erro ao criar produto:', err);
-  }
-}
-
-async function criarCategoria(categoria) {
-  try {
-    const response = await fetch(\`\${API_URL}/categories\`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(categoria)
-    });
-    const data = await response.json();
-    if (data.success) {
-      console.log('✅ Categoria criada:', data.data);
-      return data.data;
-    }
-  } catch (err) {
-    console.error('Erro ao criar categoria:', err);
-  }
-}
-
-const SENHA_MESTRA = "MESTRA2026";
-
-(function(){
- let u = JSON.parse(localStorage.getItem("usuarios")||"{}");
- if(!u.admin){
-  u.admin={senha:"1234",nivel:"admin"};
-  localStorage.setItem("usuarios",JSON.stringify(u));
- }
-})();
-
-let usuarios=JSON.parse(localStorage.getItem("usuarios"));
-let produtos=JSON.parse(localStorage.getItem("produtos")||"[]");
-let produtosIncompletos=JSON.parse(localStorage.getItem("produtosIncompletos")||"[]");
-let pedidos=JSON.parse(localStorage.getItem("pedidos")||"[]");
-let categorias=JSON.parse(localStorage.getItem("categorias")||"[]");
-let whatsappNumber = localStorage.getItem("whatsappNumber") || "";
-let usuarioAtual=null,carrinho={};
-let editandoIndice = -1;
-let itensLote = [];
-let pedidoSendoEditadoIdx = -1;
-let pedidosFiltrados = [];
-
-window.addEventListener('load', () => {
-  verificarConexaoAPI();
-  atualizarSelectCategorias();
-  atualizarListaCategorias();
-  atualizarListaIncompletos();
+const client = new Client({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
-(function(){
- const sessao = JSON.parse(sessionStorage.getItem("sessaoAtual"));
- if(sessao){
-  usuarioAtual = sessao;
-  loginBox.classList.add("hide");
-  catalogo.classList.remove("hide");
-  if(sessao.nivel==="cliente")document.querySelector(".admin-btn").style.display="none";
-  atualizarSelectCategorias();
-  renderCatalogo();
- }
- atualizarWhatsappDisplay();
-})();
+// Conectar ao banco
+client.connect()
+  .then(() => {
+    console.log('✅ Conectado ao banco de dados Neon');
+    criarTabelas();
+  })
+  .catch(err => {
+    console.error('❌ Erro ao conectar ao banco:', err);
+    process.exit(1);
+  });
 
-function login(){
- const u=usuarios[loginUser.value];
- if(!u||u.senha!==loginSenha.value)return alert("Login inválido");
- usuarioAtual={nome:loginUser.value,nivel:u.nivel};
- sessionStorage.setItem("sessaoAtual", JSON.stringify(usuarioAtual));
- loginBox.classList.add("hide");
- catalogo.classList.remove("hide");
- if(u.nivel==="cliente")document.querySelector(".admin-btn").style.display="none";
- atualizarSelectCategorias();
- renderCatalogo();
-}
+// ========== CRIAR TABELAS AUTOMATICAMENTE ==========
+async function criarTabelas() {
+  try {
+    console.log('📋 Criando tabelas...');
 
-function esqueciSenha(){
- const m = prompt("Digite a SENHA MESTRA para redefinir:");
- if(m === SENHA_MESTRA){
-  const user = prompt("Digite o nome do usuário:");
-  if(usuarios[user]){
-   const nova = prompt("Digite a NOVA SENHA:");
-   usuarios[user].senha = nova;
-   localStorage.setItem("usuarios", JSON.stringify(usuarios));
-   alert("Senha alterada com sucesso!");
-  } else {
-   alert("Usuário não encontrado.");
+    // Tabela de Usuários
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        level VARCHAR(50) DEFAULT 'cliente',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Tabela users criada');
+
+    // Tabela de Categorias
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Tabela categories criada');
+
+    // Tabela de Produtos
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        price DECIMAL(10, 2) NOT NULL,
+        category_id INTEGER REFERENCES categories(id),
+        image_url TEXT,
+        stock INTEGER DEFAULT 0,
+        ean VARCHAR(13),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Tabela products criada');
+
+    // Tabela de Pedidos
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
+        total_price DECIMAL(10, 2) NOT NULL,
+        status VARCHAR(50) DEFAULT 'pending',
+        payment_method VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Tabela orders criada');
+
+    // Tabela de Itens do Pedido
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS order_items (
+        id SERIAL PRIMARY KEY,
+        order_id INTEGER REFERENCES orders(id),
+        product_id INTEGER REFERENCES products(id),
+        quantity INTEGER NOT NULL,
+        price DECIMAL(10, 2) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Tabela order_items criada');
+
+    // Tabela de Produtos Incompletos
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS incomplete_products (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255),
+        description TEXT,
+        price DECIMAL(10, 2),
+        category_id INTEGER REFERENCES categories(id),
+        image_url TEXT,
+        ean VARCHAR(13),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Tabela incomplete_products criada');
+
+    // Tabela de Formas de Pagamento
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS payment_methods (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL UNIQUE,
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Tabela payment_methods criada');
+
+    // Tabela de Contatos
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS contacts (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        phone VARCHAR(20),
+        message TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Tabela contacts criada');
+
+    // Tabela de WhatsApp
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS whatsapp_messages (
+        id SERIAL PRIMARY KEY,
+        phone_number VARCHAR(20) NOT NULL UNIQUE,
+        message TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✅ Tabela whatsapp_messages criada');
+
+    console.log('🎉 Todas as tabelas criadas com sucesso!');
+  } catch (err) {
+    console.error('❌ Erro ao criar tabelas:', err);
   }
- } else {
-  alert("Senha mestra incorreta.");
- }
 }
 
-function logout(){
- sessionStorage.removeItem("sessaoAtual");
- loginBox.classList.remove("hide");
- catalogo.classList.add("hide");
- admin.classList.add("hide");
- loginUser.value = "";
- loginSenha.value = "";
-}
-
-function toggleTheme(){
- document.body.classList.toggle("dark");
- localStorage.setItem("tema", document.body.classList.contains("dark") ? "dark" : "light");
-}
-
-if(localStorage.getItem("tema") === "dark") document.body.classList.add("dark");
-
-function adicionarCategoria(){
- const nome = document.getElementById('novaCategoria').value.trim();
- if(!nome) return alert("Digite o nome da categoria");
- if(categorias.find(c => c.toLowerCase() === nome.toLowerCase())) return alert("Categoria já existe");
- categorias.push(nome);
- localStorage.setItem("categorias", JSON.stringify(categorias));
- document.getElementById('novaCategoria').value = '';
- atualizarSelectCategorias();
- atualizarListaCategorias();
- alert("Categoria adicionada com sucesso!");
-}
-
-function excluirCategoria(idx){
- if(confirm("Deseja excluir esta categoria?")){
-  categorias.splice(idx, 1);
-  localStorage.setItem("categorias", JSON.stringify(categorias));
-  atualizarSelectCategorias();
-  atualizarListaCategorias();
- }
-}
-
-function atualizarSelectCategorias(){
- const selects = [document.getElementById('pCategoria'), document.getElementById('filterCategoria')];
- selects.forEach(select => {
-  if(!select) return;
-  const valor = select.value;
-  select.innerHTML = select.id === 'pCategoria' ? '<option value="">Selecione uma categoria</option>' : '<option value="">Todas as Categorias</option>';
-  categorias.forEach(cat => {
-   const option = document.createElement('option');
-   option.value = cat;
-   option.textContent = cat;
-   select.appendChild(option);
-  });
-  select.value = valor;
- });
-}
-
-function atualizarListaCategorias(){
- const container = document.getElementById('listaCategoriasAdmin');
- if(categorias.length === 0){
-  container.innerHTML = '<p style="color: #666; font-style: italic;">Nenhuma categoria cadastrada ainda.</p>';
-  return;
- }
- container.innerHTML = '';
- categorias.forEach((cat, idx) => {
-  container.innerHTML += \`
-   <div class="categoria-item">
-    <strong>\${cat}</strong>
-    <button onclick="excluirCategoria(\${idx})" style="background: #f44336;">🗑️ Excluir</button>
-   </div>\`;
- });
-}
-
-function atualizarAlertaIncompletos(){
-    const alerta = document.getElementById('alertaIncompletos');
-    if(produtosIncompletos.length > 0){
-        alerta.innerHTML = \`
-        <div class="alert-incompletos">
-            <strong>⚠️ Você tem \${produtosIncompletos.length} produto(s) incompleto(s) aguardando edição!</strong>
-            <p>Esses produtos foram importados mas faltam informações (descrição, preço, categoria ou EAN-13).</p>
-            <button onclick="abrirAdmin(); setTimeout(() => { document.querySelector('#admin').scrollIntoView(); }, 100);">
-                ✏️ Editar Agora
-            </button>
-        </div>\`;
-    } else {
-        alerta.innerHTML = '';
-    }
-}
-
-function renderCatalogo(){
- lista.innerHTML="";
- const busca = searchCatalogo.value.toLowerCase();
- const filtro = filterCatalogo.value;
- const categoria = filterCategoria.value;
- 
- let exibicao = produtos.filter(p => {
-  const matchBusca = p.desc.toLowerCase().includes(busca) || (p.ean && p.ean.toLowerCase().includes(busca));
-  const matchCategoria = !categoria || p.categoria === categoria;
-  return matchBusca && matchCategoria;
- });
- 
- if(filtro === 'recente') exibicao.sort((a,b) => new Date(b.ultimaEdicao || 0) - new Date(a.ultimaEdicao || 0));
- else if(filtro === 'az') exibicao.sort((a,b) => a.desc.localeCompare(b.desc));
- else if(filtro === 'za') exibicao.sort((a,b) => b.desc.localeCompare(a.desc));
-
- exibicao.forEach((p)=>{
-  const i = produtos.indexOf(p);
-  lista.innerHTML+=\`
-  <div class="card">
-   <div class="img-container" onmousemove="zoomIn(event, this)" onmouseleave="zoomOut(this)">
-    <div class="zoom-lens"></div>
-    <img src="\${p.img}">
-   </div>
-   <p>\${p.desc}</p>
-   \${p.categoria ? \`<span class="categoria-badge">📂 \${p.categoria}</span>\` : ''}
-   <div class="price">R$ \${p.preco.toFixed(2)}</div>
-   <input type="number" min="0" value="\${carrinho[i]?.q || 0}" oninput="add(\${i},this.value)">
-  </div>\`;
- });
- 
- atualizarAlertaIncompletos();
-}
-
-function zoomIn(e, container) {
-    const img = container.querySelector('img');
-    const lens = container.querySelector('.zoom-lens');
-    lens.style.display = "block";
-    const rect = container.getBoundingClientRect();
-    let x = e.clientX - rect.left;
-    let y = e.clientY - rect.top;
-    if (x > rect.width - 40) x = rect.width - 40;
-    if (x < 40) x = 40;
-    if (y > rect.height - 40) y = rect.height - 40;
-    if (y < 40) y = 40;
-    lens.style.left = (x - 40) + "px";
-    lens.style.top = (y - 40) + "px";
-    img.style.transformOrigin = \`\${(x / rect.width) * 100}% \${(y / rect.height) * 100}%\`;
-    img.style.transform = "scale(2.5)";
-}
-
-function zoomOut(container) {
-    const img = container.querySelector('img');
-    const lens = container.querySelector('.zoom-lens');
-    lens.style.display = "none";
-    img.style.transform = "scale(1)";
-}
-
-function add(i, q){
- q = parseInt(q) || 0;
- if(q > 0) carrinho[i] = {desc: produtos[i].desc, preco: produtos[i].preco, q};
- else delete carrinho[i];
- renderCarrinho();
-}
-
-function renderCarrinho(){
- carrinhoCont.innerHTML = "";
- let t = 0;
- Object.keys(carrinho).forEach(i => {
-  const item = carrinho[i];
-  const subtotal = item.preco * item.q;
-  t += subtotal;
-  carrinhoCont.innerHTML += \`
-   <div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #ddd;">
-    <span>\${item.desc} x\${item.q}</span>
-    <span>R$ \${subtotal.toFixed(2)}</span>
-   </div>\`;
- });
- total.innerText = "R$ " + t.toFixed(2);
-}
-
-function limparCarrinho(){
- if(confirm("Deseja limpar o carrinho?")){
-  carrinho = {};
-  renderCarrinho();
- }
-}
-
-function finalizarPedido(){
- if(Object.keys(carrinho).length === 0) return alert("Carrinho vazio");
- const pagto = pagamento.value.trim();
- if(!pagto) return alert("Informe a forma de pagamento");
- 
- const timestamp = new Date().toLocaleString('pt-BR');
- const total_value = parseFloat(total.innerText.replace('R$ ', ''));
- 
- const pedido = {
-  itens: carrinho,
-  total: total_value,
-  pagamento: pagto,
-  data: timestamp.split(' ')[0],
-  status: 'aberto'
- };
- 
- pedidos.push(pedido);
- localStorage.setItem("pedidos", JSON.stringify(pedidos));
- 
- criarPedido({
-  user_id: null,
-  total_price: total_value,
-  status: 'pending'
- });
- 
- alert("✅ Pedido finalizado com sucesso!");
- carrinho = {};
- pagamento.value = "";
- renderCarrinho();
- atualizarHistorico();
-}
-
-function salvarProduto(){
- const desc = pDesc.value.trim();
- const preco = parseFloat(pPreco.value);
- const ean = pEAN.value.trim();
- const categoria = pCategoria.value;
- 
- if(!desc || !preco || !ean || !categoria) return alert("Preencha todos os campos");
- 
- const fileInput = pImg;
- if(fileInput.files.length === 0) return alert("Selecione uma imagem");
- 
- const reader = new FileReader();
- reader.onload = (e) => {
-  const timestamp = new Date().toLocaleString('pt-BR');
-  const produto = {
-   desc,
-   preco,
-   ean,
-   categoria,
-   img: e.target.result,
-   criadoEm: timestamp,
-   ultimaEdicao: timestamp
-  };
-  
-  produtos.push(produto);
-  localStorage.setItem("produtos", JSON.stringify(produtos));
-  
-  criarProduto({
-   name: desc,
-   description: desc,
-   price: preco,
-   category_id: null,
-   image_url: e.target.result,
-   stock: 10
-  });
-  
-  alert("✅ Produto salvo com sucesso!");
-  pDesc.value = "";
-  pPreco.value = "";
-  pEAN.value = "";
-  pCategoria.value = "";
-  pImg.value = "";
-  atualizarAdmin();
-  renderCatalogo();
- };
- reader.readAsDataURL(fileInput.files[0]);
-}
-
-function abrirAdmin(){
- admin.classList.toggle("hide");
- if(!admin.classList.contains("hide")){
-  atualizarAdmin();
- }
-}
-
-function atualizarAdmin(){
- atualizarListaCategorias();
- atualizarListaIncompletos();
- atualizarHistorico();
-}
-
-function atualizarHistorico(){
- atualizarAnosDisponiveis();
- renderHistorico(pedidos);
-}
-
-function renderHistorico(lista){
- listaHistorico.innerHTML="";
- lista.forEach((p,i)=>{
-  const idxReal = pedidos.indexOf(p);
-  const icon = p.status === 'fechado' ? 
-    '<span class="status-icon status-fechado">✅ Fechado</span>' : 
-    '<span class="status-icon status-andamento">⏳ Em Andamento</span>';
-  
-  listaHistorico.innerHTML+=\`
-    <div class="hist-item">
-        <div class="hist-info">
-            \${icon} <br>
-            <strong>Pedido #\${idxReal+1}</strong> - R$ \${p.total} <br>
-            <small>\${p.data}</small>
-        </div>
-        <div class="hist-actions">
-            <button onclick="retomarPedido(\${idxReal})">🔄 Retomar</button>
-            <button onclick="excluirPedidoHist(\${idxReal})" style="background:#f44336;">🗑️</button>
-        </div>
-    </div>\`;
- });
- historicoAdmin.innerHTML=listaHistorico.innerHTML;
- atualizarGrafico();
-}
-
-function retomarPedido(i){
-    const p = pedidos[i];
-    carrinho = JSON.parse(JSON.stringify(p.itens));
-    total.innerText = p.total;
-    pagamento.value = p.pagamento || "";
-    pedidoSendoEditadoIdx = i;
-    voltarCatalogo();
-    renderCatalogo();
-    alert(\`Pedido #\${i+1} retomado para edição.\`);
-}
-
-function excluirPedidoHist(i){
-    if(confirm("Deseja excluir este pedido do histórico?")){
-        pedidos.splice(i, 1);
-        localStorage.setItem("pedidos", JSON.stringify(pedidos));
-        atualizarHistorico();
-    }
-}
-
-function atualizarAnosDisponiveis(){
- const anos = new Set();
- pedidos.forEach(p => {
-  const ano = p.data.split('/')[2];
-  anos.add(ano);
- });
-}
-
-function filtrarPorData(){
- const inicio = new Date(filtroDataInicio.value);
- const fim = new Date(filtroDataFim.value);
- 
- if(!filtroDataInicio.value || !filtroDataFim.value) return alert("Selecione ambas as datas");
- 
- pedidosFiltrados = pedidos.filter(p => {
-  const [dia, mes, ano] = p.data.split('/');
-  const data = new Date(ano, mes-1, dia);
-  return data >= inicio && data <= fim;
- });
- 
- renderHistorico(pedidosFiltrados);
-}
-
-function prepararLote(input){
-    itensLote = [];
-    const files = Array.from(input.files);
-    let carregados = 0;
-    files.forEach((file, index) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const jaExiste = produtos.find(p => p.img === e.target.result || p.desc === file.name.split('.')[0]);
-            itensLote.push({ 
-                img: e.target.result, 
-                desc: file.name.split('.')[0], 
-                preco: "", 
-                ean: "",
-                categoria: "",
-                duplicado: !!jaExiste 
-            });
-            carregados++;
-            if(carregados === files.length) renderLote();
-        };
-        reader.readAsDataURL(file);
-    });
-}
-
-function renderLote(){
-    areaLote.classList.remove("hide");
-    listaLote.innerHTML = "";
-    itensLote.forEach((item, i) => {
-        const style = item.duplicado ? 'border: 2px solid #ff9800; background: #fff3e0;' : '';
-        const aviso = item.duplicado ? '<small style="color:#e65100;">⚠️ Já existe um produto similar!</small>' : '';
-        let categoriasOptions = '<option value="">Sem categoria</option>';
-        categorias.forEach(cat => {
-            categoriasOptions += \`<option value="\${cat}" \${item.categoria === cat ? 'selected' : ''}>\${cat}</option>\`;
-        });
-        listaLote.innerHTML += \`
-        <div class="lote-item" style="\${style}">
-            <div class="lote-header">
-                <img src="\${item.img}">
-                <div>
-                    <strong>Item \${i+1}</strong> \${aviso}
-                </div>
-            </div>
-            <div class="lote-inputs">
-                <input placeholder="Descrição" value="\${item.desc}" oninput="itensLote[\${i}].desc=this.value">
-                <input placeholder="Preço" oninput="itensLote[\${i}].preco=this.value">
-                <input placeholder="EAN-13" oninput="itensLote[\${i}].ean=this.value">
-                <select oninput="itensLote[\${i}].categoria=this.value">\${categoriasOptions}</select>
-            </div>
-        </div>\`;
-    });
-}
-
-function salvarLote(){
-    const timestamp = new Date().toLocaleString('pt-BR');
-    let count = 0;
-    let pulados = 0;
-    let incompletos = 0;
-    itensLote.forEach(item => {
-        const duplicadoReal = produtos.find(p => (item.ean && p.ean === item.ean) || (p.desc === item.desc && p.img === item.img));
-        if(!duplicadoReal && item.desc && item.preco){
-            produtos.push({
-                desc: item.desc,
-                preco: parseFloat(item.preco.replace(',', '.')),
-                ean: item.ean || "LOTE",
-                categoria: item.categoria || "",
-                img: item.img,
-                criadoEm: timestamp,
-                ultimaEdicao: timestamp
-            });
-            count++;
-        } else if(!duplicadoReal && item.img){
-            produtosIncompletos.push({
-                desc: item.desc || "Sem descrição",
-                preco: item.preco || "",
-                ean: item.ean || "",
-                categoria: item.categoria || "",
-                img: item.img,
-                criadoEm: timestamp
-            });
-            incompletos++;
-        } else {
-            pulados++;
-        }
-    });
-    localStorage.setItem("produtos", JSON.stringify(produtos));
-    localStorage.setItem("produtosIncompletos", JSON.stringify(produtosIncompletos));
-    areaLote.classList.add("hide");
-    pLote.value = "";
-    let msg = \`\${count} produtos cadastrados com sucesso!\`;
-    if(incompletos > 0) msg += \` (\${incompletos} produtos incompletos salvos para edição)\`;
-    if(pulados > 0) msg += \` (\${pulados} itens ignorados por serem duplicados)\`;
-    alert(msg);
-    atualizarAdmin();
-    renderCatalogo();
-}
-
-function atualizarListaIncompletos(){
-    const container = document.getElementById('produtosIncompletos');
-    if(produtosIncompletos.length === 0){
-        container.innerHTML = '<p style="color: #666; font-style: italic;">Nenhum produto incompleto no momento. ✅</p>';
-        return;
-    }
-    
-    container.innerHTML = '';
-    produtosIncompletos.forEach((p, i) => {
-        const faltaDesc = !p.desc || p.desc === "Sem descrição";
-        const faltaPreco = !p.preco;
-        const faltaEAN = !p.ean;
-        const faltaCategoria = !p.categoria;
-        
-        let faltaHTML = '';
-        if(faltaDesc) faltaHTML += '<span class="falta-item">📝 Descrição</span>';
-        if(faltaPreco) faltaHTML += '<span class="falta-item">💰 Preço</span>';
-        if(faltaEAN) faltaHTML += '<span class="falta-item">🔢 EAN-13</span>';
-        if(faltaCategoria) faltaHTML += '<span class="falta-item">📂 Categoria</span>';
-        
-        container.innerHTML += \`
-        <div class="produto-incompleto">
-            <img src="\${p.img}" class="produto-incompleto-img">
-            <div class="produto-incompleto-info">
-                <h5>⚠️ Produto Incompleto #\${i+1}</h5>
-                <p><strong>Descrição:</strong> \${p.desc}</p>
-                <p><strong>Preço:</strong> \${p.preco || "Não informado"}</p>
-                <p><strong>EAN-13:</strong> \${p.ean || "Não informado"}</p>
-                <p><strong>Categoria:</strong> \${p.categoria || "Não informado"}</p>
-                <div class="falta-info">\${faltaHTML}</div>
-                <div class="produto-incompleto-actions">
-                    <button onclick="editarIncompleto(\${i})" style="background: #2196F3;">✏️ Editar</button>
-                    <button onclick="completarIncompleto(\${i})" style="background: #4CAF50;">✅ Completar e Salvar</button>
-                    <button onclick="excluirIncompleto(\${i})" style="background: #f44336;">🗑️ Descartar</button>
-                </div>
-            </div>
-        </div>\`;
-    });
-}
-
-function editarIncompleto(i){
-    const p = produtosIncompletos[i];
-    pDesc.value = p.desc === "Sem descrição" ? "" : p.desc;
-    pPreco.value = p.preco;
-    pEAN.value = p.ean;
-    pCategoria.value = p.categoria;
-    editandoIndice = -1;
-    
-    document.querySelector('h4').scrollIntoView();
-    
-    alert(\`Editando produto incompleto #\${i+1}. Após salvar, ele será movido para produtos completos.\`);
-    
-    window.incomepletoEmEdicao = i;
-}
-
-function excluirIncompleto(i){
-    if(confirm("Deseja descartar este produto incompleto?")){
-        produtosIncompletos.splice(i, 1);
-        localStorage.setItem("produtosIncompletos", JSON.stringify(produtosIncompletos));
-        atualizarListaIncompletos();
-        atualizarAlertaIncompletos();
-    }
-}
-
-function completarIncompleto(i){
-    const p = produtosIncompletos[i];
-    if(!p.desc || p.desc === "Sem descrição" || !p.preco || !p.ean || !p.categoria){
-        alert("Por favor, preencha todos os campos (Descrição, Preço, EAN-13 e Categoria) antes de completar.");
-        editarIncompleto(i);
-        return;
-    }
-    const timestamp = new Date().toLocaleString('pt-BR');
-    produtos.push({
-        desc: p.desc,
-        preco: parseFloat(p.preco.replace(',', '.')),
-        ean: p.ean,
-        categoria: p.categoria,
-        img: p.img,
-        criadoEm: p.criadoEm,
-        ultimaEdicao: timestamp
-    });
-    produtosIncompletos.splice(i, 1);
-    localStorage.setItem("produtos", JSON.stringify(produtos));
-    localStorage.setItem("produtosIncompletos", JSON.stringify(produtosIncompletos));
-    alert("✅ Produto completado e salvo com sucesso!");
-    atualizarListaIncompletos();
-    atualizarAdmin();
-    renderCatalogo();
-}
-
-let graficoInstance = null;
-function atualizarGrafico(){
-    if(graficoInstance) graficoInstance.destroy();
-    
-    const vendasPorMes = {};
-    const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-    
-    pedidos.forEach(p => {
-        const [dia, mes, ano] = p.data.split('/');
-        const chave = \`\${meses[parseInt(mes)-1]}/\${ano}\`;
-        vendasPorMes[chave] = (vendasPorMes[chave] || 0) + parseFloat(p.total);
-    });
-    
-    const labels = Object.keys(vendasPorMes).sort();
-    const dados = labels.map(l => vendasPorMes[l]);
-    
-    graficoInstance = new Chart(grafico, {
-        type: "line",
-        data: {
-            labels: labels,
-            datasets: [{
-                label: "Vendas por Mês (R$)",
-                data: dados,
-                borderColor: '#111',
-                backgroundColor: 'rgba(0,0,0,0.1)',
-                fill: true,
-                tension: 0.3,
-                pointRadius: 5,
-                pointBackgroundColor: '#111'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: true }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: { display: true, text: 'Vendas (R$)' }
-                }
-            }
-        }
-    });
-}
-
-let assinando = false;
-assinatura.addEventListener('mousedown', () => assinando = true);
-assinatura.addEventListener('mouseup', () => assinando = false);
-assinatura.addEventListener('mousemove', (e) => {
-    if(!assinando) return;
-    const ctx = assinatura.getContext('2d');
-    const rect = assinatura.getBoundingClientRect();
-    ctx.fillStyle = '#000';
-    ctx.beginPath();
-    ctx.arc(e.clientX - rect.left, e.clientY - rect.top, 2, 0, Math.PI * 2);
-    ctx.fill();
-});
-
-function limparAssinatura(){
-    const ctx = assinatura.getContext('2d');
-    ctx.clearRect(0, 0, assinatura.width, assinatura.height);
-}
-
-function exportarAssinatura(){
-    const img = assinatura.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = img;
-    a.download = 'assinatura.png';
-    a.click();
-}
-
-function salvarWhatsapp(){
-    const numero = whatsappInput.value.trim();
-    if(!numero) return alert("Digite um número WhatsApp");
-    whatsappNumber = numero;
-    localStorage.setItem("whatsappNumber", numero);
-    atualizarWhatsappDisplay();
-    alert("✅ Número WhatsApp salvo!");
-}
-
-function atualizarWhatsappDisplay(){
-    const display = document.getElementById('whatsappDisplay');
-    const numberDisplay = document.getElementById('whatsappNumberDisplay');
-    if(whatsappNumber){
-        display.innerHTML = \`<strong>📱 Número WhatsApp:</strong> \${whatsappNumber}\`;
-        numberDisplay.innerHTML = whatsappNumber;
-    }
-}
-
-function toggleWhatsappMenu(){
-    document.getElementById('whatsappMenu').classList.toggle('show');
-}
-
-function enviarWhatsapp(){
-    const msg = whatsappMsg.value.trim();
-    if(!msg) return alert("Digite uma mensagem");
-    if(!whatsappNumber) return alert("Configure um número WhatsApp primeiro");
-    
-    const url = \`https://wa.me/\${whatsappNumber}?text=\${encodeURIComponent(msg)}\`;
-    window.open(url, '_blank');
-    whatsappMsg.value = "";
-}
-
-function voltarCatalogo(){
-    admin.classList.add("hide");
-}
-</script>
-
-</body>
-</html>`;
-
-// Criar servidor HTTP
-const server = http.createServer((req, res) => {
+// ========== SERVIDOR HTTP ==========
+const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
 
-  // CORS headers
+  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Content-Type', 'application/json');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(200);
@@ -1384,258 +165,327 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Servir index.html na raiz
-  if (pathname === '/' || pathname === '/index.html') {
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(indexHTML);
-    return;
-  }
+  try {
+    // ========== ROTAS ==========
 
-  // API Routes
-  if (pathname.startsWith('/api/')) {
-    handleAPI(req, res, pathname, parsedUrl);
-    return;
-  }
+    // Health Check
+    if (pathname === '/api/health') {
+      res.writeHead(200);
+      res.end(JSON.stringify({
+        success: true,
+        message: '🚀 Servidor rodando com sucesso!',
+        timestamp: new Date().toISOString()
+      }));
+    }
 
-  // 404
-  res.writeHead(404, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ success: false, error: 'Rota não encontrada' }));
+    // ========== USUÁRIOS ==========
+    else if (pathname === '/api/users' && req.method === 'GET') {
+      const result = await client.query('SELECT id, name, level, created_at FROM users');
+      res.writeHead(200);
+      res.end(JSON.stringify({ success: true, data: result.rows }));
+    }
+
+    else if (pathname === '/api/users' && req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => body += chunk);
+      req.on('end', async () => {
+        const { name, password, level } = JSON.parse(body);
+        try {
+          const result = await client.query(
+            'INSERT INTO users (name, password, level) VALUES ($1, $2, $3) RETURNING *',
+            [name, password, level || 'cliente']
+          );
+          res.writeHead(201);
+          res.end(JSON.stringify({ success: true, data: result.rows[0] }));
+        } catch (err) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ success: false, error: err.message }));
+        }
+      });
+    }
+
+    // ========== CATEGORIAS ==========
+    else if (pathname === '/api/categories' && req.method === 'GET') {
+      const result = await client.query('SELECT * FROM categories');
+      res.writeHead(200);
+      res.end(JSON.stringify({ success: true, data: result.rows }));
+    }
+
+    else if (pathname === '/api/categories' && req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => body += chunk);
+      req.on('end', async () => {
+        const { name, description } = JSON.parse(body);
+        try {
+          const result = await client.query(
+            'INSERT INTO categories (name, description) VALUES ($1, $2) RETURNING *',
+            [name, description || '']
+          );
+          res.writeHead(201);
+          res.end(JSON.stringify({ success: true, data: result.rows[0] }));
+        } catch (err) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ success: false, error: err.message }));
+        }
+      });
+    }
+
+    // ========== PRODUTOS ==========
+    else if (pathname === '/api/products' && req.method === 'GET') {
+      const result = await client.query('SELECT * FROM products');
+      res.writeHead(200);
+      res.end(JSON.stringify({ success: true, data: result.rows }));
+    }
+
+    else if (pathname === '/api/products' && req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => body += chunk);
+      req.on('end', async () => {
+        const { name, description, price, category_id, image_url, stock, ean } = JSON.parse(body);
+        try {
+          const result = await client.query(
+            'INSERT INTO products (name, description, price, category_id, image_url, stock, ean) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+            [name, description || '', price, category_id || null, image_url || '', stock || 0, ean || '']
+          );
+          res.writeHead(201);
+          res.end(JSON.stringify({ success: true, data: result.rows[0] }));
+        } catch (err) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ success: false, error: err.message }));
+        }
+      });
+    }
+
+    // ========== PEDIDOS ==========
+    else if (pathname === '/api/orders' && req.method === 'GET') {
+      const result = await client.query('SELECT * FROM orders ORDER BY created_at DESC');
+      res.writeHead(200);
+      res.end(JSON.stringify({ success: true, data: result.rows }));
+    }
+
+    else if (pathname === '/api/orders' && req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => body += chunk);
+      req.on('end', async () => {
+        const { user_id, total_price, status, payment_method } = JSON.parse(body);
+        try {
+          const result = await client.query(
+            'INSERT INTO orders (user_id, total_price, status, payment_method) VALUES ($1, $2, $3, $4) RETURNING *',
+            [user_id || null, total_price, status || 'pending', payment_method || '']
+          );
+          res.writeHead(201);
+          res.end(JSON.stringify({ success: true, data: result.rows[0] }));
+        } catch (err) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ success: false, error: err.message }));
+        }
+      });
+    }
+
+    // ========== FORMAS DE PAGAMENTO ==========
+    else if (pathname === '/api/payment-methods' && req.method === 'GET') {
+      const result = await client.query('SELECT * FROM payment_methods');
+      res.writeHead(200);
+      res.end(JSON.stringify({ success: true, data: result.rows }));
+    }
+
+    else if (pathname === '/api/payment-methods' && req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => body += chunk);
+      req.on('end', async () => {
+        const { name, description } = JSON.parse(body);
+        try {
+          const result = await client.query(
+            'INSERT INTO payment_methods (name, description) VALUES ($1, $2) RETURNING *',
+            [name, description || '']
+          );
+          res.writeHead(201);
+          res.end(JSON.stringify({ success: true, data: result.rows[0] }));
+        } catch (err) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ success: false, error: err.message }));
+        }
+      });
+    }
+
+    // ========== CONTATOS ==========
+    else if (pathname === '/api/contacts' && req.method === 'GET') {
+      const result = await client.query('SELECT * FROM contacts ORDER BY created_at DESC');
+      res.writeHead(200);
+      res.end(JSON.stringify({ success: true, data: result.rows }));
+    }
+
+    else if (pathname === '/api/contacts' && req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => body += chunk);
+      req.on('end', async () => {
+        const { name, email, phone, message } = JSON.parse(body);
+        try {
+          const result = await client.query(
+            'INSERT INTO contacts (name, email, phone, message) VALUES ($1, $2, $3, $4) RETURNING *',
+            [name, email, phone || '', message || '']
+          );
+          res.writeHead(201);
+          res.end(JSON.stringify({ success: true, data: result.rows[0] }));
+        } catch (err) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ success: false, error: err.message }));
+        }
+      });
+    }
+
+    // ========== WHATSAPP ==========
+    else if (pathname === '/api/whatsapp' && req.method === 'GET') {
+      const result = await client.query('SELECT * FROM whatsapp_messages');
+      res.writeHead(200);
+      res.end(JSON.stringify({ success: true, data: result.rows }));
+    }
+
+    else if (pathname === '/api/whatsapp' && req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => body += chunk);
+      req.on('end', async () => {
+        const { phone_number, message } = JSON.parse(body);
+        try {
+          const result = await client.query(
+            'INSERT INTO whatsapp_messages (phone_number, message) VALUES ($1, $2) ON CONFLICT (phone_number) DO UPDATE SET message = $2, updated_at = CURRENT_TIMESTAMP RETURNING *',
+            [phone_number, message || '']
+          );
+          res.writeHead(201);
+          res.end(JSON.stringify({ success: true, data: result.rows[0] }));
+        } catch (err) {
+          res.writeHead(400);
+          res.end(JSON.stringify({ success: false, error: err.message }));
+        }
+      });
+    }
+
+    // ========== PÁGINA INICIAL ==========
+    else if (pathname === '/' || pathname === '/index.html') {
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Tem Tudo - API</title>
+          <style>
+            body { font-family: Arial; background: #f5f5f5; padding: 20px; }
+            .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            h1 { color: #111; text-align: center; }
+            .status { background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: center; font-weight: bold; }
+            .endpoint { background: #f9f9f9; padding: 15px; margin: 10px 0; border-left: 4px solid #2196F3; border-radius: 5px; }
+            .endpoint strong { color: #2196F3; }
+            .method { display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 12px; font-weight: bold; margin-right: 10px; }
+            .get { background: #4CAF50; color: white; }
+            .post { background: #2196F3; color: white; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <h1>🛒 Tem Tudo - API REST</h1>
+            <div class="status">✅ Servidor rodando com sucesso!</div>
+            
+            <h2>📋 Endpoints Disponíveis</h2>
+            
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <strong>/api/health</strong> - Verificar status do servidor
+            </div>
+            
+            <h3>👥 Usuários</h3>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <strong>/api/users</strong> - Listar usuários
+            </div>
+            <div class="endpoint">
+              <span class="method post">POST</span>
+              <strong>/api/users</strong> - Criar usuário
+            </div>
+            
+            <h3>📂 Categorias</h3>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <strong>/api/categories</strong> - Listar categorias
+            </div>
+            <div class="endpoint">
+              <span class="method post">POST</span>
+              <strong>/api/categories</strong> - Criar categoria
+            </div>
+            
+            <h3>📦 Produtos</h3>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <strong>/api/products</strong> - Listar produtos
+            </div>
+            <div class="endpoint">
+              <span class="method post">POST</span>
+              <strong>/api/products</strong> - Criar produto
+            </div>
+            
+            <h3>🛒 Pedidos</h3>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <strong>/api/orders</strong> - Listar pedidos
+            </div>
+            <div class="endpoint">
+              <span class="method post">POST</span>
+              <strong>/api/orders</strong> - Criar pedido
+            </div>
+            
+            <h3>💳 Formas de Pagamento</h3>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <strong>/api/payment-methods</strong> - Listar formas de pagamento
+            </div>
+            <div class="endpoint">
+              <span class="method post">POST</span>
+              <strong>/api/payment-methods</strong> - Criar forma de pagamento
+            </div>
+            
+            <h3>📧 Contatos</h3>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <strong>/api/contacts</strong> - Listar contatos
+            </div>
+            <div class="endpoint">
+              <span class="method post">POST</span>
+              <strong>/api/contacts</strong> - Criar contato
+            </div>
+            
+            <h3>📱 WhatsApp</h3>
+            <div class="endpoint">
+              <span class="method get">GET</span>
+              <strong>/api/whatsapp</strong> - Listar números WhatsApp
+            </div>
+            <div class="endpoint">
+              <span class="method post">POST</span>
+              <strong>/api/whatsapp</strong> - Salvar número WhatsApp
+            </div>
+            
+            <div class="footer">
+              <p>🎉 Desenvolvido por: Andrews Pablo</p>
+              <p>Data: 16 de Janeiro de 2026</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+
+    // Rota não encontrada
+    else {
+      res.writeHead(404);
+      res.end(JSON.stringify({ success: false, error: 'Rota não encontrada' }));
+    }
+
+  } catch (err) {
+    console.error('Erro:', err);
+    res.writeHead(500);
+    res.end(JSON.stringify({ success: false, error: err.message }));
+  }
 });
-
-// Handler de API
-function handleAPI(req, res, pathname, parsedUrl) {
-  const method = req.method;
-
-  // Health Check
-  if (pathname === '/api/health' && method === 'GET') {
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({
-      success: true,
-      message: '🚀 Servidor rodando com sucesso!',
-      timestamp: new Date().toISOString()
-    }));
-    return;
-  }
-
-  // Produtos
-  if (pathname === '/api/products') {
-    if (method === 'GET') {
-      if (db) {
-        db.query('SELECT * FROM products ORDER BY id DESC', (err, result) => {
-          if (err) {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: false, error: err.message }));
-          } else {
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true, data: result.rows }));
-          }
-        });
-      } else {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, data: [] }));
-      }
-      return;
-    }
-
-    if (method === 'POST') {
-      let body = '';
-      req.on('data', chunk => body += chunk);
-      req.on('end', () => {
-        try {
-          const { name, description, price, category_id, image_url, stock } = JSON.parse(body);
-          if (db) {
-            db.query(
-              'INSERT INTO products (name, description, price, category_id, image_url, stock) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-              [name, description, price, category_id, image_url, stock],
-              (err, result) => {
-                if (err) {
-                  res.writeHead(500, { 'Content-Type': 'application/json' });
-                  res.end(JSON.stringify({ success: false, error: err.message }));
-                } else {
-                  res.writeHead(201, { 'Content-Type': 'application/json' });
-                  res.end(JSON.stringify({ success: true, data: result.rows[0] }));
-                }
-              }
-            );
-          } else {
-            res.writeHead(201, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true, data: { id: 1, name, description, price, category_id, image_url, stock } }));
-          }
-        } catch (err) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: false, error: err.message }));
-        }
-      });
-      return;
-    }
-  }
-
-  // Categorias
-  if (pathname === '/api/categories') {
-    if (method === 'GET') {
-      if (db) {
-        db.query('SELECT * FROM categories ORDER BY id DESC', (err, result) => {
-          if (err) {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: false, error: err.message }));
-          } else {
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true, data: result.rows }));
-          }
-        });
-      } else {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, data: [] }));
-      }
-      return;
-    }
-
-    if (method === 'POST') {
-      let body = '';
-      req.on('data', chunk => body += chunk);
-      req.on('end', () => {
-        try {
-          const { name, description } = JSON.parse(body);
-          if (db) {
-            db.query(
-              'INSERT INTO categories (name, description) VALUES ($1, $2) RETURNING *',
-              [name, description],
-              (err, result) => {
-                if (err) {
-                  res.writeHead(500, { 'Content-Type': 'application/json' });
-                  res.end(JSON.stringify({ success: false, error: err.message }));
-                } else {
-                  res.writeHead(201, { 'Content-Type': 'application/json' });
-                  res.end(JSON.stringify({ success: true, data: result.rows[0] }));
-                }
-              }
-            );
-          } else {
-            res.writeHead(201, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true, data: { id: 1, name, description } }));
-          }
-        } catch (err) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: false, error: err.message }));
-        }
-      });
-      return;
-    }
-  }
-
-  // Usuários
-  if (pathname === '/api/users') {
-    if (method === 'GET') {
-      if (db) {
-        db.query('SELECT * FROM users ORDER BY id DESC', (err, result) => {
-          if (err) {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: false, error: err.message }));
-          } else {
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true, data: result.rows }));
-          }
-        });
-      } else {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, data: [] }));
-      }
-      return;
-    }
-
-    if (method === 'POST') {
-      let body = '';
-      req.on('data', chunk => body += chunk);
-      req.on('end', () => {
-        try {
-          const { name, email, phone, password } = JSON.parse(body);
-          if (db) {
-            db.query(
-              'INSERT INTO users (name, email, phone, password) VALUES ($1, $2, $3, $4) RETURNING *',
-              [name, email, phone, password],
-              (err, result) => {
-                if (err) {
-                  res.writeHead(500, { 'Content-Type': 'application/json' });
-                  res.end(JSON.stringify({ success: false, error: err.message }));
-                } else {
-                  res.writeHead(201, { 'Content-Type': 'application/json' });
-                  res.end(JSON.stringify({ success: true, data: result.rows[0] }));
-                }
-              }
-            );
-          } else {
-            res.writeHead(201, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true, data: { id: 1, name, email, phone, password } }));
-          }
-        } catch (err) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: false, error: err.message }));
-        }
-      });
-      return;
-    }
-  }
-
-  // Pedidos
-  if (pathname === '/api/orders') {
-    if (method === 'GET') {
-      if (db) {
-        db.query('SELECT * FROM orders ORDER BY id DESC', (err, result) => {
-          if (err) {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: false, error: err.message }));
-          } else {
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true, data: result.rows }));
-          }
-        });
-      } else {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ success: true, data: [] }));
-      }
-      return;
-    }
-
-    if (method === 'POST') {
-      let body = '';
-      req.on('data', chunk => body += chunk);
-      req.on('end', () => {
-        try {
-          const { user_id, total_price, status } = JSON.parse(body);
-          if (db) {
-            db.query(
-              'INSERT INTO orders (user_id, total_price, status) VALUES ($1, $2, $3) RETURNING *',
-              [user_id, total_price, status],
-              (err, result) => {
-                if (err) {
-                  res.writeHead(500, { 'Content-Type': 'application/json' });
-                  res.end(JSON.stringify({ success: false, error: err.message }));
-                } else {
-                  res.writeHead(201, { 'Content-Type': 'application/json' });
-                  res.end(JSON.stringify({ success: true, data: result.rows[0] }));
-                }
-              }
-            );
-          } else {
-            res.writeHead(201, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ success: true, data: { id: 1, user_id, total_price, status } }));
-          }
-        } catch (err) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: false, error: err.message }));
-        }
-      });
-      return;
-    }
-  }
-
-  // 404
-  res.writeHead(404, { 'Content-Type': 'application/json' });
-  res.end(JSON.stringify({ success: false, error: 'Rota não encontrada' }));
-}
-
-// Conectar ao banco e iniciar servidor
-conectarBanco();
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
