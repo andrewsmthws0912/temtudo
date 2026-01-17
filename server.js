@@ -1,4 +1,6 @@
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 const { Client } = require('pg');
 const url = require('url');
 
@@ -157,7 +159,6 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Content-Type', 'application/json');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(200);
@@ -166,10 +167,11 @@ const server = http.createServer(async (req, res) => {
   }
 
   try {
-    // ========== ROTAS ==========
+    // ========== ROTAS DE API ==========
 
     // Health Check
     if (pathname === '/api/health') {
+      res.setHeader('Content-Type', 'application/json');
       res.writeHead(200);
       res.end(JSON.stringify({
         success: true,
@@ -180,12 +182,14 @@ const server = http.createServer(async (req, res) => {
 
     // ========== USUÁRIOS ==========
     else if (pathname === '/api/users' && req.method === 'GET') {
+      res.setHeader('Content-Type', 'application/json');
       const result = await client.query('SELECT id, name, level, created_at FROM users');
       res.writeHead(200);
       res.end(JSON.stringify({ success: true, data: result.rows }));
     }
 
     else if (pathname === '/api/users' && req.method === 'POST') {
+      res.setHeader('Content-Type', 'application/json');
       let body = '';
       req.on('data', chunk => body += chunk);
       req.on('end', async () => {
@@ -206,12 +210,14 @@ const server = http.createServer(async (req, res) => {
 
     // ========== CATEGORIAS ==========
     else if (pathname === '/api/categories' && req.method === 'GET') {
+      res.setHeader('Content-Type', 'application/json');
       const result = await client.query('SELECT * FROM categories');
       res.writeHead(200);
       res.end(JSON.stringify({ success: true, data: result.rows }));
     }
 
     else if (pathname === '/api/categories' && req.method === 'POST') {
+      res.setHeader('Content-Type', 'application/json');
       let body = '';
       req.on('data', chunk => body += chunk);
       req.on('end', async () => {
@@ -232,12 +238,14 @@ const server = http.createServer(async (req, res) => {
 
     // ========== PRODUTOS ==========
     else if (pathname === '/api/products' && req.method === 'GET') {
+      res.setHeader('Content-Type', 'application/json');
       const result = await client.query('SELECT * FROM products');
       res.writeHead(200);
       res.end(JSON.stringify({ success: true, data: result.rows }));
     }
 
     else if (pathname === '/api/products' && req.method === 'POST') {
+      res.setHeader('Content-Type', 'application/json');
       let body = '';
       req.on('data', chunk => body += chunk);
       req.on('end', async () => {
@@ -258,12 +266,14 @@ const server = http.createServer(async (req, res) => {
 
     // ========== PEDIDOS ==========
     else if (pathname === '/api/orders' && req.method === 'GET') {
+      res.setHeader('Content-Type', 'application/json');
       const result = await client.query('SELECT * FROM orders ORDER BY created_at DESC');
       res.writeHead(200);
       res.end(JSON.stringify({ success: true, data: result.rows }));
     }
 
     else if (pathname === '/api/orders' && req.method === 'POST') {
+      res.setHeader('Content-Type', 'application/json');
       let body = '';
       req.on('data', chunk => body += chunk);
       req.on('end', async () => {
@@ -284,12 +294,14 @@ const server = http.createServer(async (req, res) => {
 
     // ========== FORMAS DE PAGAMENTO ==========
     else if (pathname === '/api/payment-methods' && req.method === 'GET') {
+      res.setHeader('Content-Type', 'application/json');
       const result = await client.query('SELECT * FROM payment_methods');
       res.writeHead(200);
       res.end(JSON.stringify({ success: true, data: result.rows }));
     }
 
     else if (pathname === '/api/payment-methods' && req.method === 'POST') {
+      res.setHeader('Content-Type', 'application/json');
       let body = '';
       req.on('data', chunk => body += chunk);
       req.on('end', async () => {
@@ -310,12 +322,14 @@ const server = http.createServer(async (req, res) => {
 
     // ========== CONTATOS ==========
     else if (pathname === '/api/contacts' && req.method === 'GET') {
+      res.setHeader('Content-Type', 'application/json');
       const result = await client.query('SELECT * FROM contacts ORDER BY created_at DESC');
       res.writeHead(200);
       res.end(JSON.stringify({ success: true, data: result.rows }));
     }
 
     else if (pathname === '/api/contacts' && req.method === 'POST') {
+      res.setHeader('Content-Type', 'application/json');
       let body = '';
       req.on('data', chunk => body += chunk);
       req.on('end', async () => {
@@ -336,12 +350,14 @@ const server = http.createServer(async (req, res) => {
 
     // ========== WHATSAPP ==========
     else if (pathname === '/api/whatsapp' && req.method === 'GET') {
+      res.setHeader('Content-Type', 'application/json');
       const result = await client.query('SELECT * FROM whatsapp_messages');
       res.writeHead(200);
       res.end(JSON.stringify({ success: true, data: result.rows }));
     }
 
     else if (pathname === '/api/whatsapp' && req.method === 'POST') {
+      res.setHeader('Content-Type', 'application/json');
       let body = '';
       req.on('data', chunk => body += chunk);
       req.on('end', async () => {
@@ -360,128 +376,32 @@ const server = http.createServer(async (req, res) => {
       });
     }
 
-    // ========== PÁGINA INICIAL ==========
+    // ========== SERVIR ARQUIVOS ESTÁTICOS ==========
     else if (pathname === '/' || pathname === '/index.html') {
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.end(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="UTF-8">
-          <title>Tem Tudo - API</title>
-          <style>
-            body { font-family: Arial; background: #f5f5f5; padding: 20px; }
-            .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-            h1 { color: #111; text-align: center; }
-            .status { background: #d4edda; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: center; font-weight: bold; }
-            .endpoint { background: #f9f9f9; padding: 15px; margin: 10px 0; border-left: 4px solid #2196F3; border-radius: 5px; }
-            .endpoint strong { color: #2196F3; }
-            .method { display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 12px; font-weight: bold; margin-right: 10px; }
-            .get { background: #4CAF50; color: white; }
-            .post { background: #2196F3; color: white; }
-            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <h1>🛒 Tem Tudo - API REST</h1>
-            <div class="status">✅ Servidor rodando com sucesso!</div>
-            
-            <h2>📋 Endpoints Disponíveis</h2>
-            
-            <div class="endpoint">
-              <span class="method get">GET</span>
-              <strong>/api/health</strong> - Verificar status do servidor
-            </div>
-            
-            <h3>👥 Usuários</h3>
-            <div class="endpoint">
-              <span class="method get">GET</span>
-              <strong>/api/users</strong> - Listar usuários
-            </div>
-            <div class="endpoint">
-              <span class="method post">POST</span>
-              <strong>/api/users</strong> - Criar usuário
-            </div>
-            
-            <h3>📂 Categorias</h3>
-            <div class="endpoint">
-              <span class="method get">GET</span>
-              <strong>/api/categories</strong> - Listar categorias
-            </div>
-            <div class="endpoint">
-              <span class="method post">POST</span>
-              <strong>/api/categories</strong> - Criar categoria
-            </div>
-            
-            <h3>📦 Produtos</h3>
-            <div class="endpoint">
-              <span class="method get">GET</span>
-              <strong>/api/products</strong> - Listar produtos
-            </div>
-            <div class="endpoint">
-              <span class="method post">POST</span>
-              <strong>/api/products</strong> - Criar produto
-            </div>
-            
-            <h3>🛒 Pedidos</h3>
-            <div class="endpoint">
-              <span class="method get">GET</span>
-              <strong>/api/orders</strong> - Listar pedidos
-            </div>
-            <div class="endpoint">
-              <span class="method post">POST</span>
-              <strong>/api/orders</strong> - Criar pedido
-            </div>
-            
-            <h3>💳 Formas de Pagamento</h3>
-            <div class="endpoint">
-              <span class="method get">GET</span>
-              <strong>/api/payment-methods</strong> - Listar formas de pagamento
-            </div>
-            <div class="endpoint">
-              <span class="method post">POST</span>
-              <strong>/api/payment-methods</strong> - Criar forma de pagamento
-            </div>
-            
-            <h3>📧 Contatos</h3>
-            <div class="endpoint">
-              <span class="method get">GET</span>
-              <strong>/api/contacts</strong> - Listar contatos
-            </div>
-            <div class="endpoint">
-              <span class="method post">POST</span>
-              <strong>/api/contacts</strong> - Criar contato
-            </div>
-            
-            <h3>📱 WhatsApp</h3>
-            <div class="endpoint">
-              <span class="method get">GET</span>
-              <strong>/api/whatsapp</strong> - Listar números WhatsApp
-            </div>
-            <div class="endpoint">
-              <span class="method post">POST</span>
-              <strong>/api/whatsapp</strong> - Salvar número WhatsApp
-            </div>
-            
-            <div class="footer">
-              <p>🎉 Desenvolvido por: Andrews Pablo</p>
-              <p>Data: 16 de Janeiro de 2026</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `);
+      const indexPath = path.join(__dirname, 'index.html');
+      fs.readFile(indexPath, 'utf8', (err, data) => {
+        if (err) {
+          res.setHeader('Content-Type', 'text/html');
+          res.writeHead(404);
+          res.end('<h1>Arquivo index.html não encontrado</h1>');
+        } else {
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          res.writeHead(200);
+          res.end(data);
+        }
+      });
     }
 
     // Rota não encontrada
     else {
+      res.setHeader('Content-Type', 'application/json');
       res.writeHead(404);
       res.end(JSON.stringify({ success: false, error: 'Rota não encontrada' }));
     }
 
   } catch (err) {
     console.error('Erro:', err);
+    res.setHeader('Content-Type', 'application/json');
     res.writeHead(500);
     res.end(JSON.stringify({ success: false, error: err.message }));
   }
