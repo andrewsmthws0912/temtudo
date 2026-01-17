@@ -434,8 +434,10 @@ body.dark .categoria-item {
 
 <header>
 <h2>🛒 Tem Tudo – Utilidades e Variedades</h2>
-<button onclick="toggleTheme()">🌗 Claro / Escuro</button>
-<button onclick="sincronizarComAPI()" style="background:#4CAF50;margin-top:8px;">🔄 Sincronizar com API</button>
+<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+<button onclick="toggleTheme()" style="width:auto;padding:10px 15px;">🌗 Claro / Escuro</button>
+<button onclick="sincronizarComAPI()" style="width:auto;padding:10px 15px;background:#4CAF50;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🔄 Sincronizar com API</button>
+</div>
 </header>
 
 <!-- STATUS DA API -->
