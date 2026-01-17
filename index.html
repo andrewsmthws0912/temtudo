@@ -461,83 +461,99 @@ body.dark .categoria-item {
 <div id="admin" class="hide">
 <div class="section">
 <h3>👨‍💼 Painel Administrativo</h3>
-<button onclick="abrirAdmin()" style="background:#666;">❌ Fechar Admin</button>
-<button onclick="logout()" style="background:#f44336;">🚪 Logout</button>
 
-<!-- CADASTRO DE PRODUTOS -->
-<h4>📦 Cadastrar Produto</h4>
-<input id="pDesc" placeholder="Descrição">
-<input id="pPreco" placeholder="Preço" type="number" step="0.01">
-<input id="pEAN" placeholder="EAN-13">
-<select id="pCategoria"></select>
-<input id="pImg" type="file" accept="image/*">
-<button onclick="salvarProduto()">💾 Salvar Produto</button>
-
-<!-- IMPORTAÇÃO EM LOTE -->
-<h4>📤 Importar Produtos em Lote</h4>
-<input id="pLote" type="file" multiple accept="image/*" onchange="prepararLote(this)">
-<div id="areaLote" class="hide">
-<div id="listaLote"></div>
-<button onclick="salvarLote()">💾 Salvar Lote</button>
+<div class="chart-container">
+    <canvas id="grafico"></canvas>
 </div>
 
-<!-- CATEGORIAS -->
-<h4>📂 Gerenciar Categorias</h4>
-<input id="novaCategoria" placeholder="Nome da Categoria">
-<button onclick="adicionarCategoria()">➕ Adicionar Categoria</button>
-<div id="listaCategoriasAdmin"></div>
+<hr>
 
-<!-- PRODUTOS INCOMPLETOS -->
-<h4>⚠️ Produtos Incompletos</h4>
+<h4>📂 Gerenciar Categorias</h4>
+<input id="novaCategoria" placeholder="Nome da categoria (ex: Eletrônicos, Roupas, etc)">
+<button onclick="adicionarCategoria()" style="background: #4CAF50;">➕ Adicionar Categoria</button>
+<div id="listaCategoriasAdmin" style="margin-top: 15px;"></div>
+
+<hr>
+
+<h4>📦 Cadastro de Produto</h4>
+<textarea id="pDesc" placeholder="Descrição"></textarea>
+<input id="pPreco" placeholder="Preço">
+<input id="pEAN" placeholder="EAN-13">
+<select id="pCategoria">
+ <option value="">Selecione uma categoria</option>
+</select>
+<input type="file" id="pImg" hidden>
+<button onclick="pImg.click()">Escolher Imagem</button>
+<button onclick="salvarProduto()">Salvar Produto</button>
+
+<hr>
+
+<h4>⚠️ Produtos Incompletos (Pendentes de Edição)</h4>
 <div id="produtosIncompletos"></div>
 
-<!-- HISTÓRICO -->
-<h4>📋 Histórico de Pedidos</h4>
-<div class="filtro-data-container">
-<input id="filtroDataInicio" type="date" placeholder="Data Início">
-<input id="filtroDataFim" type="date" placeholder="Data Fim">
-<button onclick="filtrarPorData()">🔍 Filtrar</button>
-</div>
-<div id="listaHistorico" class="hist-container"></div>
-<div id="historicoAdmin"></div>
+<hr>
 
-<!-- GRÁFICO -->
-<h4>📊 Gráfico de Vendas</h4>
-<div class="chart-container">
-<canvas id="grafico"></canvas>
+<h4>🚀 Importação em Lote</h4>
+<input type="file" id="pLote" multiple accept="image/*" hidden onchange="prepararLote(this)">
+<button onclick="pLote.click()" style="background: #2196F3;">Selecionar Várias Imagens</button>
+<div id="areaLote" class="hide">
+    <h5>Editar itens do lote:</h5>
+    <div id="listaLote"></div>
+    <button onclick="salvarLote()" style="background: #4CAF50;">Salvar Todos do Lote</button>
 </div>
 
-<!-- ASSINATURA -->
-<h4>✍️ Assinatura Digital</h4>
-<canvas id="assinatura"></canvas>
-<button onclick="limparAssinatura()">🗑️ Limpar</button>
-<button onclick="exportarAssinatura()">💾 Salvar Assinatura</button>
+<hr>
 
-<!-- WHATSAPP -->
-<h4>📱 WhatsApp</h4>
-<input id="whatsappInput" placeholder="Número WhatsApp (ex: 5511999999999)">
-<button onclick="salvarWhatsapp()">💾 Salvar Número</button>
-<p id="whatsappDisplay"></p>
+<h4>👤 Criar Usuário</h4>
+<input id="novoUser" placeholder="Usuário ou Email">
+<input id="novaSenha" type="password" placeholder="Senha">
+<select id="nivelUser">
+ <option value="admin">Administrador</option>
+ <option value="vendedor">Vendedor</option>
+ <option value="cliente">Cliente</option>
+</select>
+<button onclick="criarUsuario()">Criar Usuário</button>
+
+<hr>
+
+<h4>📱 Configurar WhatsApp</h4>
+<input id="whatsappNumber" placeholder="Digite seu número (ex: 5511999999999)">
+<button onclick="salvarWhatsapp()" style="background: #25D366;">Salvar Número WhatsApp</button>
+<div id="whatsappStatus" style="margin-top: 10px; font-size: 13px; color: #666;"></div>
+
+<hr>
+
+<h4>Produtos cadastrados</h4>
+<div id="listaAdmin"></div>
+
+<hr>
+
+<h4>🧾 Histórico</h4>
+<div class="hist-container" id="historicoAdmin"></div>
+<button onclick="limparHistorico()">Limpar Histórico</button>
+
+<button onclick="voltarCatalogo()">Voltar</button>
 </div>
 
-<!-- WHATSAPP FLOATING BUTTON -->
+<!-- WhatsApp Floating Button -->
 <div class="whatsapp-container">
-<button class="whatsapp-btn" onclick="toggleWhatsappMenu()">💬</button>
-<div id="whatsappMenu" class="whatsapp-menu">
-<input id="whatsappMsg" placeholder="Digite sua mensagem...">
-<button onclick="enviarWhatsapp()">Enviar</button>
-<div class="whatsapp-info">
-<p>Envie mensagens direto para o WhatsApp</p>
-<div id="whatsappNumberDisplay" class="whatsapp-number-display"></div>
-</div>
-</div>
+    <div class="whatsapp-menu" id="whatsappMenu">
+        <div style="margin-bottom: 10px;">
+            <label style="font-size: 12px; font-weight: 600; color: #333;">Número WhatsApp:</label>
+            <input type="text" id="whatsappInput" placeholder="5511999999999" style="margin-top: 4px;">
+        </div>
+        <button onclick="abrirWhatsapp()">💬 Abrir WhatsApp</button>
+        <div class="whatsapp-info">
+            <p style="margin: 0;">Salve seu número no Painel Administrativo para que ele fique persistente.</p>
+            <div class="whatsapp-number-display" id="whatsappNumberDisplay"></div>
+        </div>
+    </div>
+    <button class="whatsapp-btn" onclick="toggleWhatsappMenu()" title="Abrir WhatsApp">
+        💬
+    </button>
 </div>
 
-</div>
-
-<footer>
-<p>© 2026 Tem Tudo - Utilidades e Variedades | Desenvolvido por Andrews Pablo</p>
-</footer>
+<footer>Desenvolvido por: Andrews Pablo!</footer>
 
 <script>
 /* ========== CONFIGURAÇÃO DA API ========== */
@@ -555,8 +571,7 @@ async function criarProdutoAPI(produto) {
     });
     const data = await response.json();
     if (data.success) {
-      console.log('✅ Produto criado na API:', data.data);
-      return data.data;
+      console.log('✅ Produto criado na API');
     }
   } catch (err) {
     console.error('Erro ao criar produto na API:', err);
@@ -573,8 +588,7 @@ async function criarCategoriaAPI(categoria) {
     });
     const data = await response.json();
     if (data.success) {
-      console.log('✅ Categoria criada na API:', data.data);
-      return data.data;
+      console.log('✅ Categoria criada na API');
     }
   } catch (err) {
     console.error('Erro ao criar categoria na API:', err);
@@ -591,15 +605,14 @@ async function criarPedidoAPI(pedido) {
     });
     const data = await response.json();
     if (data.success) {
-      console.log('✅ Pedido criado na API:', data.data);
-      return data.data;
+      console.log('✅ Pedido criado na API');
     }
   } catch (err) {
     console.error('Erro ao criar pedido na API:', err);
   }
 }
 
-/* ===== CONFIGURAÇÕES ORIGINAIS ===== */
+/* ===== CONFIGURAÇÕES ===== */
 const SENHA_MESTRA = "MESTRA2026";
 
 /* ===== ADMIN AUTOMÁTICO ===== */
@@ -667,23 +680,6 @@ function esqueciSenha(){
   alert("Senha mestra incorreta.");
  }
 }
-
-function logout(){
- sessionStorage.removeItem("sessaoAtual");
- loginBox.classList.remove("hide");
- catalogo.classList.add("hide");
- admin.classList.add("hide");
- loginUser.value = "";
- loginSenha.value = "";
-}
-
-/* ===== TEMA ===== */
-function toggleTheme(){
- document.body.classList.toggle("dark");
- localStorage.setItem("tema", document.body.classList.contains("dark") ? "dark" : "light");
-}
-
-if(localStorage.getItem("tema") === "dark") document.body.classList.add("dark");
 
 /* ===== CATEGORIAS ===== */
 function adicionarCategoria(){
@@ -886,85 +882,20 @@ function finalizarPedido(){
  atualizarHistorico();
 }
 
-/* ===== PRODUTOS ===== */
-function salvarProduto(){
- const desc = pDesc.value.trim();
- const preco = parseFloat(pPreco.value);
- const ean = pEAN.value.trim();
- const categoria = pCategoria.value;
- 
- if(!desc || !preco || !ean || !categoria) return alert("Preencha todos os campos");
- 
- const fileInput = pImg;
- if(fileInput.files.length === 0) return alert("Selecione uma imagem");
- 
- const reader = new FileReader();
- reader.onload = (e) => {
-  const timestamp = new Date().toLocaleString('pt-BR');
-  const produto = {
-   desc,
-   preco,
-   ean,
-   categoria,
-   img: e.target.result,
-   criadoEm: timestamp,
-   ultimaEdicao: timestamp
-  };
-  
-  produtos.push(produto);
-  localStorage.setItem("produtos", JSON.stringify(produtos));
-  
-  // Enviar para API
-  criarProdutoAPI({
-   name: desc,
-   description: desc,
-   price: preco,
-   category_id: null,
-   image_url: e.target.result,
-   stock: 10
-  });
-  
-  alert("✅ Produto salvo com sucesso!");
-  pDesc.value = "";
-  pPreco.value = "";
-  pEAN.value = "";
-  pCategoria.value = "";
-  pImg.value = "";
-  atualizarAdmin();
-  renderCatalogo();
- };
- reader.readAsDataURL(fileInput.files[0]);
-}
-
-/* ===== ADMIN ===== */
-function abrirAdmin(){
- admin.classList.toggle("hide");
- if(!admin.classList.contains("hide")){
-  atualizarAdmin();
- }
-}
-
-function atualizarAdmin(){
- atualizarListaCategorias();
- atualizarListaIncompletos();
- atualizarHistorico();
-}
-
 /* ===== HISTÓRICO E RETOMADA ===== */
 function atualizarHistorico(){
- atualizarAnosDisponiveis();
  renderHistorico(pedidos);
 }
 
 function renderHistorico(lista){
- listaHistorico.innerHTML="";
+ historicoAdmin.innerHTML="";
  lista.forEach((p,i)=>{
   const idxReal = pedidos.indexOf(p);
   const icon = p.status === 'fechado' ? 
     '<span class="status-icon status-fechado">✅ Fechado</span>' : 
     '<span class="status-icon status-andamento">⏳ Em Andamento</span>';
   
-  listaHistorico.innerHTML+=`
+  historicoAdmin.innerHTML+=`
     <div class="hist-item">
         <div class="hist-info">
             ${icon} <br>
@@ -979,7 +910,6 @@ function renderHistorico(lista){
         </div>
     </div>`;
  });
- historicoAdmin.innerHTML=listaHistorico.innerHTML;
  atualizarGrafico();
 }
 
@@ -1000,65 +930,6 @@ function excluirPedidoHist(i){
         localStorage.setItem("pedidos", JSON.stringify(pedidos));
         atualizarHistorico();
     }
-}
-
-function atualizarAnosDisponiveis(){
- const anos = new Set();
- pedidos.forEach(p => {
-  const ano = p.data.split('/')[2];
-  anos.add(ano);
- });
-}
-
-function filtrarPorData(){
- const inicio = new Date(filtroDataInicio.value);
- const fim = new Date(filtroDataFim.value);
- 
- if(!filtroDataInicio.value || !filtroDataFim.value) return alert("Selecione ambas as datas");
- 
- pedidosFiltrados = pedidos.filter(p => {
-  const [dia, mes, ano] = p.data.split('/');
-  const data = new Date(ano, mes-1, dia);
-  return data >= inicio && data <= fim;
- });
- 
- renderHistorico(pedidosFiltrados);
-}
-
-function exportarPDF(i){
-    const p = pedidos[i];
-    const doc = new jsPDF();
-    doc.text(`Pedido #${i+1}`, 10, 10);
-    doc.text(`Data: ${p.data}`, 10, 20);
-    doc.text(`Total: R$ ${p.total}`, 10, 30);
-    doc.text(`Pagamento: ${p.pagamento}`, 10, 40);
-    doc.autoTable({
-        head: [['Produto', 'Qtd', 'Preço', 'Subtotal']],
-        body: Object.keys(p.itens).map(idx => {
-            const item = p.itens[idx];
-            return [item.desc, item.q, `R$ ${item.preco.toFixed(2)}`, `R$ ${(item.preco * item.q).toFixed(2)}`];
-        })
-    });
-    doc.save(`pedido_${i+1}.pdf`);
-}
-
-function exportarExcel(i){
-    const p = pedidos[i];
-    const ws = XLSX.utils.aoa_to_sheet([
-        ['Pedido', `#${i+1}`],
-        ['Data', p.data],
-        ['Total', `R$ ${p.total}`],
-        ['Pagamento', p.pagamento],
-        [],
-        ['Produto', 'Qtd', 'Preço', 'Subtotal'],
-        ...Object.keys(p.itens).map(idx => {
-            const item = p.itens[idx];
-            return [item.desc, item.q, `R$ ${item.preco.toFixed(2)}`, `R$ ${(item.preco * item.q).toFixed(2)}`];
-        })
-    ]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Pedido");
-    XLSX.writeFile(wb, `pedido_${i+1}.xlsx`);
 }
 
 /* ===== IMPORTAÇÃO EM LOTE COM PROTEÇÃO ===== */
@@ -1296,69 +1167,200 @@ function atualizarGrafico(){
     });
 }
 
-/* ===== ASSINATURA DIGITAL ===== */
-let assinando = false;
-assinatura.addEventListener('mousedown', () => assinando = true);
-assinatura.addEventListener('mouseup', () => assinando = false);
-assinatura.addEventListener('mousemove', (e) => {
-    if(!assinando) return;
-    const ctx = assinatura.getContext('2d');
-    const rect = assinatura.getBoundingClientRect();
-    ctx.fillStyle = '#000';
-    ctx.beginPath();
-    ctx.arc(e.clientX - rect.left, e.clientY - rect.top, 2, 0, Math.PI * 2);
-    ctx.fill();
-});
-
-function limparAssinatura(){
-    const ctx = assinatura.getContext('2d');
-    ctx.clearRect(0, 0, assinatura.width, assinatura.height);
-}
-
-function exportarAssinatura(){
-    const img = assinatura.toDataURL('image/png');
-    const a = document.createElement('a');
-    a.href = img;
-    a.download = 'assinatura.png';
-    a.click();
-}
-
 /* ===== WHATSAPP ===== */
-function salvarWhatsapp(){
-    const numero = whatsappInput.value.trim();
-    if(!numero) return alert("Digite um número WhatsApp");
-    whatsappNumber = numero;
-    localStorage.setItem("whatsappNumber", numero);
-    atualizarWhatsappDisplay();
-    alert("✅ Número WhatsApp salvo!");
-}
-
-function atualizarWhatsappDisplay(){
-    const display = document.getElementById('whatsappDisplay');
-    const numberDisplay = document.getElementById('whatsappNumberDisplay');
-    if(whatsappNumber){
-        display.innerHTML = `<strong>📱 Número WhatsApp:</strong> ${whatsappNumber}`;
-        numberDisplay.innerHTML = whatsappNumber;
+function toggleWhatsappMenu(){
+    const menu = document.getElementById('whatsappMenu');
+    menu.classList.toggle('show');
+    if(menu.classList.contains('show')){
+        document.getElementById('whatsappInput').value = whatsappNumber;
+        document.getElementById('whatsappInput').focus();
     }
 }
 
-function toggleWhatsappMenu(){
-    document.getElementById('whatsappMenu').classList.toggle('show');
-}
-
-function enviarWhatsapp(){
-    const msg = whatsappMsg.value.trim();
-    if(!msg) return alert("Digite uma mensagem");
-    if(!whatsappNumber) return alert("Configure um número WhatsApp primeiro");
-    
-    const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(msg)}`;
+function abrirWhatsapp(){
+    const numero = document.getElementById('whatsappInput').value.trim();
+    if(!numero){
+        alert("Por favor, digite um número de WhatsApp válido");
+        return;
+    }
+    const url = `https://wa.me/${numero}?text=Olá! Gostaria de mais informações sobre os produtos.`;
     window.open(url, '_blank');
-    whatsappMsg.value = "";
 }
 
-/* ===== VOLTAR CATÁLOGO ===== */
-function voltarCatalogo(){
-    admin.classList.add("hide");
+function salvarWhatsapp(){
+    const numero = document.getElementById('whatsappNumber').value.trim();
+    if(!numero){
+        alert("Por favor, digite um número válido");
+        return;
+    }
+    whatsappNumber = numero;
+    localStorage.setItem('whatsappNumber', numero);
+    document.getElementById('whatsappStatus').innerHTML = `✅ Número salvo: <strong>${numero}</strong>`;
+    document.getElementById('whatsappNumber').value = '';
+    atualizarWhatsappDisplay();
+    setTimeout(() => {
+        document.getElementById('whatsappStatus').innerHTML = '';
+    }, 3000);
+}
+
+function atualizarWhatsappDisplay(){
+    if(whatsappNumber){
+        document.getElementById('whatsappNumberDisplay').textContent = `📱 ${whatsappNumber}`;
+    }
+}
+
+/* ===== RESTANTE DAS FUNÇÕES ===== */
+function salvarProduto(){
+ const precoStr = pPreco.value.replace(',', '.');
+ const precoFormatado = parseFloat(precoStr);
+ if(!pDesc.value || isNaN(precoFormatado)) return alert("Preencha descrição e preço corretamente!");
+ if(!pCategoria.value) return alert("Selecione uma categoria!");
+ if(editandoIndice === -1){
+    const existe = produtos.find(p => p.desc === pDesc.value || (pEAN.value && p.ean === pEAN.value));
+    if(existe && !confirm("Já existe um produto com este nome ou EAN. Deseja cadastrar mesmo assim?")) return;
+ }
+ const timestamp = new Date().toLocaleString('pt-BR');
+ const acao = (img) => {
+    if(editandoIndice >= 0){
+        produtos[editandoIndice] = {...produtos[editandoIndice], desc:pDesc.value, preco:precoFormatado, ean:pEAN.value, categoria:pCategoria.value, img:img||produtos[editandoIndice].img, ultimaEdicao:timestamp};
+        editandoIndice = -1;
+    } else {
+        produtos.push({desc:pDesc.value, preco:precoFormatado, ean:pEAN.value, categoria:pCategoria.value, img:img, criadoEm:timestamp, ultimaEdicao:timestamp});
+        if(window.incomepletoEmEdicao !== undefined){
+            produtosIncompletos.splice(window.incomepletoEmEdicao, 1);
+            localStorage.setItem("produtosIncompletos", JSON.stringify(produtosIncompletos));
+            window.incomepletoEmEdicao = undefined;
+        }
+    }
+    localStorage.setItem("produtos",JSON.stringify(produtos));
+    pDesc.value=pPreco.value=pEAN.value=""; pImg.value=""; pCategoria.value="";
+    atualizarAdmin(); renderCatalogo();
+    
+    // Enviar para API
+    criarProdutoAPI({
+      name: pDesc.value,
+      description: pDesc.value,
+      price: precoFormatado,
+      category_id: null,
+      image_url: img,
+      stock: 10
+    });
+ };
+ if(pImg.files[0]){
+    const r=new FileReader();
+    r.onload=()=>acao(r.result);
+    r.readAsDataURL(pImg.files[0]);
+ } else acao();
+}
+
+function atualizarAdmin(){
+ listaAdmin.innerHTML="";
+ produtos.forEach((p,i)=>{
+  listaAdmin.innerHTML+=`
+   <div class="prod-admin">
+    <div class="prod-admin-info">
+     <strong>${p.desc}</strong> - R$ ${p.preco.toFixed(2)} <br>
+     <span class="categoria-badge">📂 ${p.categoria || "Sem categoria"}</span> <br>
+     <span class="timestamp">EAN: ${p.ean || '---'} | Editado: ${p.ultimaEdicao || p.criadoEm}</span>
+    </div>
+    <div class="prod-admin-actions">
+     <button onclick="editarProduto(${i})">✏️</button>
+     <button onclick="excluirProduto(${i})">🗑️</button>
+    </div>
+   </div>`;
+ });
+ atualizarHistorico();
+ atualizarListaIncompletos();
+}
+
+function editarProduto(i){
+ const p=produtos[i];
+ pDesc.value=p.desc; pPreco.value=p.preco; pEAN.value=p.ean; pCategoria.value=p.categoria;
+ editandoIndice = i;
+ window.scrollTo(0,0);
+}
+
+function excluirProduto(i){
+ if(confirm("Excluir produto?")){
+  produtos.splice(i,1);
+  localStorage.setItem("produtos",JSON.stringify(produtos));
+  atualizarAdmin(); renderCatalogo();
+ }
+}
+
+const c=document.getElementById("assinatura"),ctx=c.getContext("2d");
+let d=false;
+c.onmousedown=()=>{d=true;ctx.beginPath()};
+c.onmouseup=()=>d=false;
+c.onmousemove=e=>{if(d){ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke()}};
+function limparAssinatura(){
+ const s=prompt("Digite sua senha:");
+ if(!s||usuarios[usuarioAtual.nome].senha!==s)return alert("Senha inválida");
+ ctx.clearRect(0,0,c.width,c.height);
+}
+
+function abrirAdmin(){
+ const s=prompt("Digite sua senha:");
+ if(!s||usuarios[usuarioAtual.nome].senha!==s)return alert("Senha inválida");
+ catalogo.classList.add("hide");admin.classList.remove("hide");
+ atualizarAdmin();
+ atualizarListaCategorias();
+ document.getElementById('whatsappNumber').value = whatsappNumber;
+ atualizarWhatsappDisplay();
+}
+function voltarCatalogo(){ admin.classList.add("hide");catalogo.classList.remove("hide"); }
+function criarUsuario(){
+ let u=JSON.parse(localStorage.getItem("usuarios"));
+ if(u[novoUser.value])return alert("Usuário já existe");
+ u[novoUser.value]={senha:novaSenha.value,nivel:nivelUser.value};
+ localStorage.setItem("usuarios",JSON.stringify(u));
+ alert("Usuário criado!");
+ novoUser.value=novaSenha.value="";
+}
+function logout(){ sessionStorage.removeItem("sessaoAtual"); location.reload(); }
+function toggleTheme(){ document.body.classList.toggle("dark"); }
+function limparHistorico(){
+ const s=prompt("Digite sua senha:");
+ if(!s||usuarios[usuarioAtual.nome].senha!==s)return alert("Senha inválida");
+ pedidos=[];localStorage.removeItem("pedidos");
+ atualizarHistorico();
+}
+
+// Funções de exportação
+function exportarPDF(i){
+    const p = pedidos[i];
+    const doc = new jsPDF();
+    doc.text(`Pedido #${i+1}`, 10, 10);
+    doc.text(`Data: ${p.data}`, 10, 20);
+    doc.text(`Total: R$ ${p.total}`, 10, 30);
+    doc.text(`Pagamento: ${p.pagamento}`, 10, 40);
+    doc.autoTable({
+        head: [['Produto', 'Qtd', 'Preço', 'Subtotal']],
+        body: Object.keys(p.itens).map(idx => {
+            const item = p.itens[idx];
+            return [item.desc, item.q, `R$ ${item.preco.toFixed(2)}`, `R$ ${(item.preco * item.q).toFixed(2)}`];
+        })
+    });
+    doc.save(`pedido_${i+1}.pdf`);
+}
+
+function exportarExcel(i){
+    const p = pedidos[i];
+    const ws = XLSX.utils.aoa_to_sheet([
+        ['Pedido', `#${i+1}`],
+        ['Data', p.data],
+        ['Total', `R$ ${p.total}`],
+        ['Pagamento', p.pagamento],
+        [],
+        ['Produto', 'Qtd', 'Preço', 'Subtotal'],
+        ...Object.keys(p.itens).map(idx => {
+            const item = p.itens[idx];
+            return [item.desc, item.q, `R$ ${item.preco.toFixed(2)}`, `R$ ${(item.preco * item.q).toFixed(2)}`];
+        })
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Pedido");
+    XLSX.writeFile(wb, `pedido_${i+1}.xlsx`);
 }
 </script>
 
