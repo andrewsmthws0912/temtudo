@@ -407,26 +407,6 @@ body.dark .categoria-item {
     padding: 10px 15px;
     margin-top: 0;
 }
-
-/* Status da API */
-.api-status {
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    font-size: 14px;
-}
-
-.api-status.conectado {
-    background: #c8e6c9;
-    color: #2e7d32;
-    border-left: 4px solid #4caf50;
-}
-
-.api-status.desconectado {
-    background: #ffcdd2;
-    color: #c62828;
-    border-left: 4px solid #f44336;
-}
 </style>
 </head>
 
@@ -434,16 +414,8 @@ body.dark .categoria-item {
 
 <header>
 <h2>🛒 Tem Tudo – Utilidades e Variedades</h2>
-<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-<button onclick="toggleTheme()" style="width:auto;padding:10px 15px;">🌗 Claro / Escuro</button>
-<button onclick="sincronizarComAPI()" style="width:auto;padding:10px 15px;background:#4CAF50;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">🔄 Sincronizar com API</button>
-</div>
+<button onclick="toggleTheme()">🌗 Claro / Escuro</button>
 </header>
-
-<!-- STATUS DA API -->
-<div id="statusAPI" class="api-status desconectado">
-⚠️ Desconectado da API
-</div>
 
 <!-- LOGIN -->
 <div id="loginBox" class="section">
@@ -573,71 +545,8 @@ const API_URL = 'https://temtudo1.onrender.com/api';
 
 /* ========== FUNÇÕES DE INTEGRAÇÃO COM API ========== */
 
-// Verificar conexão com API
-async function verificarConexaoAPI() {
-  try {
-    const response = await fetch(`${API_URL}/health`);
-    const data = await response.json();
-    if (data.success) {
-      atualizarStatusAPI(true);
-      console.log('✅ Conectado à API');
-      return true;
-    }
-  } catch (err) {
-    atualizarStatusAPI(false);
-    console.error('❌ Erro ao conectar à API:', err);
-    return false;
-  }
-}
-
-// Atualizar status da API na interface
-function atualizarStatusAPI(conectado) {
-  const statusDiv = document.getElementById('statusAPI');
-  if (conectado) {
-    statusDiv.className = 'api-status conectado';
-    statusDiv.innerHTML = '✅ Conectado à API - Dados sincronizados com o banco de dados';
-  } else {
-    statusDiv.className = 'api-status desconectado';
-    statusDiv.innerHTML = '⚠️ Desconectado da API - Usando dados locais (localStorage)';
-  }
-}
-
-// Sincronizar dados com API
-async function sincronizarComAPI() {
-  console.log('🔄 Sincronizando com API...');
-  
-  // Enviar produtos
-  if (produtos.length > 0) {
-    for (const produto of produtos) {
-      await criarProduto({
-        name: produto.desc,
-        description: produto.desc,
-        price: produto.preco,
-        category_id: null,
-        image_url: produto.img,
-        stock: 10
-      });
-    }
-    console.log(`✅ ${produtos.length} produtos sincronizados`);
-  }
-  
-  // Enviar categorias
-  if (categorias.length > 0) {
-    for (const categoria of categorias) {
-      await criarCategoria({
-        name: categoria,
-        description: categoria
-      });
-    }
-    console.log(`✅ ${categorias.length} categorias sincronizadas`);
-  }
-  
-  alert('✅ Dados sincronizados com sucesso!');
-}
-
-// ========== FUNÇÕES DE PRODUTOS ==========
-
-async function criarProduto(produto) {
+// Criar produto na API
+async function criarProdutoAPI(produto) {
   try {
     const response = await fetch(`${API_URL}/products`, {
       method: 'POST',
@@ -646,30 +555,16 @@ async function criarProduto(produto) {
     });
     const data = await response.json();
     if (data.success) {
-      console.log('✅ Produto criado:', data.data);
+      console.log('✅ Produto criado na API:', data.data);
       return data.data;
     }
   } catch (err) {
-    console.error('Erro ao criar produto:', err);
+    console.error('Erro ao criar produto na API:', err);
   }
 }
 
-async function listarProdutosAPI() {
-  try {
-    const response = await fetch(`${API_URL}/products`);
-    const data = await response.json();
-    if (data.success) {
-      console.log('✅ Produtos da API:', data.data);
-      return data.data;
-    }
-  } catch (err) {
-    console.error('Erro ao listar produtos:', err);
-  }
-}
-
-// ========== FUNÇÕES DE CATEGORIAS ==========
-
-async function criarCategoria(categoria) {
+// Criar categoria na API
+async function criarCategoriaAPI(categoria) {
   try {
     const response = await fetch(`${API_URL}/categories`, {
       method: 'POST',
@@ -678,24 +573,29 @@ async function criarCategoria(categoria) {
     });
     const data = await response.json();
     if (data.success) {
-      console.log('✅ Categoria criada:', data.data);
+      console.log('✅ Categoria criada na API:', data.data);
       return data.data;
     }
   } catch (err) {
-    console.error('Erro ao criar categoria:', err);
+    console.error('Erro ao criar categoria na API:', err);
   }
 }
 
-async function listarCategoriasAPI() {
+// Criar pedido na API
+async function criarPedidoAPI(pedido) {
   try {
-    const response = await fetch(`${API_URL}/categories`);
+    const response = await fetch(`${API_URL}/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pedido)
+    });
     const data = await response.json();
     if (data.success) {
-      console.log('✅ Categorias da API:', data.data);
+      console.log('✅ Pedido criado na API:', data.data);
       return data.data;
     }
   } catch (err) {
-    console.error('Erro ao listar categorias:', err);
+    console.error('Erro ao criar pedido na API:', err);
   }
 }
 
@@ -723,14 +623,6 @@ let editandoIndice = -1;
 let itensLote = [];
 let pedidoSendoEditadoIdx = -1;
 let pedidosFiltrados = [];
-
-/* ===== VERIFICAR CONEXÃO NA INICIALIZAÇÃO ===== */
-window.addEventListener('load', () => {
-  verificarConexaoAPI();
-  atualizarSelectCategorias();
-  atualizarListaCategorias();
-  atualizarListaIncompletos();
-});
 
 /* ===== PERSISTÊNCIA DE LOGIN ===== */
 (function(){
@@ -803,6 +695,13 @@ function adicionarCategoria(){
  document.getElementById('novaCategoria').value = '';
  atualizarSelectCategorias();
  atualizarListaCategorias();
+ 
+ // Enviar para API
+ criarCategoriaAPI({
+  name: nome,
+  description: nome
+ });
+ 
  alert("Categoria adicionada com sucesso!");
 }
 
@@ -974,7 +873,7 @@ function finalizarPedido(){
  localStorage.setItem("pedidos", JSON.stringify(pedidos));
  
  // Enviar para API
- criarPedido({
+ criarPedidoAPI({
   user_id: null,
   total_price: total_value,
   status: 'pending'
@@ -1016,7 +915,7 @@ function salvarProduto(){
   localStorage.setItem("produtos", JSON.stringify(produtos));
   
   // Enviar para API
-  criarProduto({
+  criarProdutoAPI({
    name: desc,
    description: desc,
    price: preco,
@@ -1124,6 +1023,42 @@ function filtrarPorData(){
  });
  
  renderHistorico(pedidosFiltrados);
+}
+
+function exportarPDF(i){
+    const p = pedidos[i];
+    const doc = new jsPDF();
+    doc.text(`Pedido #${i+1}`, 10, 10);
+    doc.text(`Data: ${p.data}`, 10, 20);
+    doc.text(`Total: R$ ${p.total}`, 10, 30);
+    doc.text(`Pagamento: ${p.pagamento}`, 10, 40);
+    doc.autoTable({
+        head: [['Produto', 'Qtd', 'Preço', 'Subtotal']],
+        body: Object.keys(p.itens).map(idx => {
+            const item = p.itens[idx];
+            return [item.desc, item.q, `R$ ${item.preco.toFixed(2)}`, `R$ ${(item.preco * item.q).toFixed(2)}`];
+        })
+    });
+    doc.save(`pedido_${i+1}.pdf`);
+}
+
+function exportarExcel(i){
+    const p = pedidos[i];
+    const ws = XLSX.utils.aoa_to_sheet([
+        ['Pedido', `#${i+1}`],
+        ['Data', p.data],
+        ['Total', `R$ ${p.total}`],
+        ['Pagamento', p.pagamento],
+        [],
+        ['Produto', 'Qtd', 'Preço', 'Subtotal'],
+        ...Object.keys(p.itens).map(idx => {
+            const item = p.itens[idx];
+            return [item.desc, item.q, `R$ ${item.preco.toFixed(2)}`, `R$ ${(item.preco * item.q).toFixed(2)}`];
+        })
+    ]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Pedido");
+    XLSX.writeFile(wb, `pedido_${i+1}.xlsx`);
 }
 
 /* ===== IMPORTAÇÃO EM LOTE COM PROTEÇÃO ===== */
