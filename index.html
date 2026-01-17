@@ -407,6 +407,37 @@ body.dark .categoria-item {
     padding: 10px 15px;
     margin-top: 0;
 }
+
+.api-status {
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.api-status.connected {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.api-status.disconnected {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+body.dark .api-status.connected {
+    background: #1e4620;
+    color: #a6e3a1;
+    border-color: #2d5a2d;
+}
+
+body.dark .api-status.disconnected {
+    background: #5a2c2c;
+    color: #f8a5a5;
+    border-color: #7a3c3c;
+}
 </style>
 </head>
 
@@ -417,164 +448,229 @@ body.dark .categoria-item {
 <button onclick="toggleTheme()">🌗 Claro / Escuro</button>
 </header>
 
+<div id="apiStatus" class="api-status disconnected">🔴 Desconectado da API</div>
+
 <!-- LOGIN -->
 <div id="loginBox" class="section">
-<h3>Login</h3>
-<input id="loginUser" placeholder="Usuário" value="admin">
-<input id="loginSenha" placeholder="Senha" type="password" value="1234">
-<button onclick="login()">Entrar</button>
-<button onclick="esqueciSenha()" style="background:#666;">Esqueci a Senha</button>
+ <h3>Login</h3>
+ <input type="text" id="loginUser" placeholder="Usuário">
+ <input type="password" id="loginSenha" placeholder="Senha">
+ <button onclick="login()">Entrar</button>
+ <button onclick="esqueciSenha()" style="background:#666;margin-top:5px">Esqueci a Senha</button>
+ <p style="text-align:center;font-size:12px;opacity:0.7">Usuário padrão: <strong>admin</strong> | Senha: <strong>1234</strong></p>
 </div>
 
-<!-- CATÁLOGO -->
+<!-- CATALOGO -->
 <div id="catalogo" class="hide">
-<div class="section">
-<h3>🛍️ Catálogo</h3>
-<div class="search-filter-container">
-<input id="searchCatalogo" placeholder="Buscar produto..." oninput="renderCatalogo()">
-<select id="filterCatalogo" onchange="renderCatalogo()">
-<option value="">Todos</option>
-<option value="recente">Mais Recentes</option>
-<option value="az">A-Z</option>
-<option value="za">Z-A</option>
-</select>
-<select id="filterCategoria" onchange="renderCatalogo()">
-<option value="">Todas as Categorias</option>
-</select>
-</div>
-<div id="alertaIncompletos"></div>
-<div id="lista" class="grid-horizontal"></div>
-</div>
 
-<!-- CARRINHO -->
-<div class="section">
-<h3>🛒 Carrinho</h3>
-<div id="carrinhoCont"></div>
-<p>Total: <strong id="total">R$ 0.00</strong></p>
-<input id="pagamento" placeholder="Forma de Pagamento (ex: Dinheiro, Cartão, PIX)">
-<button onclick="finalizarPedido()">✅ Finalizar Pedido</button>
-<button onclick="limparCarrinho()" style="background:#f44336;">🗑️ Limpar Carrinho</button>
-</div>
+ <!-- HEADER COM TEMA -->
+ <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px">
+  <h3 id="usuarioDisplay"></h3>
+  <button onclick="logout()" style="width:auto;padding:8px 15px;margin:0">Sair</button>
+ </div>
 
-<!-- ADMIN -->
-<button class="admin-btn" onclick="abrirAdmin()">👨‍💼 Painel Admin</button>
-<div id="admin" class="hide">
-<div class="section">
-<h3>👨‍💼 Painel Administrativo</h3>
+ <!-- ADMIN PANEL -->
+ <div class="section admin-btn" style="background:#ffe0b2;color:#000">
+  <h4>⚙️ PAINEL ADMINISTRATIVO</h4>
 
-<div class="chart-container">
+  <!-- GERENCIAR USUÁRIOS -->
+  <div style="margin-bottom:20px">
+   <h5>👥 Gerenciar Usuários</h5>
+   <input type="text" id="novoUsuario" placeholder="Nome do usuário">
+   <input type="password" id="novoSenha" placeholder="Senha">
+   <select id="novoNivel">
+    <option value="">Selecione o nível</option>
+    <option value="admin">Admin</option>
+    <option value="cliente">Cliente</option>
+   </select>
+   <button onclick="criarUsuario()" style="background:#4CAF50">➕ Criar Usuário</button>
+   <div id="listaUsuarios" style="margin-top:10px"></div>
+  </div>
+
+  <!-- GERENCIAR CATEGORIAS -->
+  <div style="margin-bottom:20px">
+   <h5>📂 Gerenciar Categorias</h5>
+   <input type="text" id="novaCategoria" placeholder="Nome da categoria">
+   <button onclick="adicionarCategoria()" style="background:#2196F3">➕ Adicionar Categoria</button>
+   <div id="listaCategoriasAdmin" style="margin-top:10px"></div>
+  </div>
+
+  <!-- GERENCIAR FORMAS DE PAGAMENTO -->
+  <div style="margin-bottom:20px">
+   <h5>💳 Gerenciar Formas de Pagamento</h5>
+   <input type="text" id="novaFormaPagamento" placeholder="Nome da forma de pagamento">
+   <button onclick="adicionarFormaPagamento()" style="background:#FF9800">➕ Adicionar Forma de Pagamento</button>
+   <div id="listaFormasPagamento" style="margin-top:10px"></div>
+  </div>
+
+  <!-- GERENCIAR CONTATOS -->
+  <div style="margin-bottom:20px">
+   <h5>📧 Gerenciar Contatos</h5>
+   <input type="text" id="novoContatoNome" placeholder="Nome">
+   <input type="email" id="novoContatoEmail" placeholder="Email">
+   <input type="tel" id="novoContatoTelefone" placeholder="Telefone">
+   <textarea id="novoContatoMensagem" placeholder="Mensagem" style="height:80px"></textarea>
+   <button onclick="adicionarContato()" style="background:#9C27B0">➕ Adicionar Contato</button>
+   <div id="listaContatos" style="margin-top:10px"></div>
+  </div>
+
+  <!-- GERENCIAR WHATSAPP -->
+  <div style="margin-bottom:20px">
+   <h5>📱 Gerenciar WhatsApp</h5>
+   <input type="text" id="novoWhatsapp" placeholder="Número WhatsApp (com código país)">
+   <button onclick="adicionarWhatsapp()" style="background:#25D366">➕ Salvar WhatsApp</button>
+   <div id="listaWhatsapp" style="margin-top:10px"></div>
+  </div>
+
+  <!-- CADASTRO DE PRODUTOS -->
+  <div style="margin-bottom:20px">
+   <h5>📦 Cadastro de Produtos</h5>
+   <input type="text" id="pDesc" placeholder="Descrição do produto">
+   <input type="number" id="pPreco" placeholder="Preço (R$)" step="0.01">
+   <input type="text" id="pEAN" placeholder="EAN-13">
+   <select id="pCategoria">
+    <option value="">Selecione uma categoria</option>
+   </select>
+   <input type="file" id="pImg" accept="image/*">
+   <button onclick="salvarProduto()" style="background:#4CAF50">💾 Salvar Produto</button>
+   <div id="listaAdmin" style="margin-top:10px"></div>
+  </div>
+
+  <!-- IMPORTAR LOTE -->
+  <div style="margin-bottom:20px">
+   <h5>📥 Importar Lote de Produtos</h5>
+   <textarea id="pLote" placeholder="Cole aqui o JSON com os produtos (array de objetos)"></textarea>
+   <button onclick="processarLote()" style="background:#FF5722">📤 Processar Lote</button>
+   <div id="areaLote" class="hide"></div>
+  </div>
+
+  <!-- PRODUTOS INCOMPLETOS -->
+  <div style="margin-bottom:20px">
+   <h5>⚠️ Produtos Incompletos</h5>
+   <div id="produtosIncompletos"></div>
+  </div>
+
+  <!-- GRÁFICO DE VENDAS -->
+  <div style="margin-bottom:20px">
+   <h5>📊 Gráfico de Vendas por Mês</h5>
+   <div class="chart-container">
     <canvas id="grafico"></canvas>
+   </div>
+  </div>
+
+  <!-- HISTÓRICO DE PEDIDOS -->
+  <div style="margin-bottom:20px">
+   <h5>📋 Histórico de Pedidos</h5>
+   <div class="filtro-data-container">
+    <input type="date" id="filtroData">
+    <select id="filtroMes">
+     <option value="">Todos os Meses</option>
+     <option value="01">Janeiro</option>
+     <option value="02">Fevereiro</option>
+     <option value="03">Março</option>
+     <option value="04">Abril</option>
+     <option value="05">Maio</option>
+     <option value="06">Junho</option>
+     <option value="07">Julho</option>
+     <option value="08">Agosto</option>
+     <option value="09">Setembro</option>
+     <option value="10">Outubro</option>
+     <option value="11">Novembro</option>
+     <option value="12">Dezembro</option>
+    </select>
+    <select id="filtroAno">
+     <option value="">Todos os Anos</option>
+    </select>
+    <button onclick="filtrarHistoricoPorData()" style="width:auto;padding:10px 15px">🔍 Filtrar</button>
+    <button onclick="limparFiltrosData()" style="width:auto;padding:10px 15px;background:#666">🔄 Limpar</button>
+   </div>
+   <div id="historico" class="hist-container"></div>
+  </div>
+ </div>
+
+ <!-- CATÁLOGO DE PRODUTOS -->
+ <div class="section">
+  <h3>🛍️ Catálogo</h3>
+  <div class="search-filter-container">
+   <input type="text" id="searchProduto" placeholder="🔍 Buscar produto..." onkeyup="renderCatalogo()">
+   <select id="filterCategoria" onchange="renderCatalogo()">
+    <option value="">Todas as Categorias</option>
+   </select>
+  </div>
+  <div id="catalogo_grid" class="grid-horizontal"></div>
+ </div>
+
+ <!-- CARRINHO -->
+ <div class="section">
+  <h3>🛒 Carrinho</h3>
+  <div id="carrinho_grid" class="grid-horizontal"></div>
+  <h4>Total: R$ <span id="total">0.00</span></h4>
+  <select id="pagamento">
+   <option value="">Selecione a forma de pagamento</option>
+  </select>
+  <button onclick="salvarPedido()" style="background:#FF9800">💾 Salvar Pedido</button>
+  <button onclick="fecharPedido()" style="background:#4CAF50">✅ Fechar Pedido</button>
+  <button onclick="limparCamposPedido()" style="background:#f44336">🗑️ Limpar Carrinho</button>
+  <canvas id="assinatura"></canvas>
+  <button onclick="limparAssinatura()" style="background:#666;margin-top:5px">🧹 Limpar Assinatura</button>
+ </div>
+
 </div>
 
-<hr>
-
-<h4>📂 Gerenciar Categorias</h4>
-<input id="novaCategoria" placeholder="Nome da categoria (ex: Eletrônicos, Roupas, etc)">
-<button onclick="adicionarCategoria()" style="background: #4CAF50;">➕ Adicionar Categoria</button>
-<div id="listaCategoriasAdmin" style="margin-top: 15px;"></div>
-
-<hr>
-
-<h4>📦 Cadastro de Produto</h4>
-<textarea id="pDesc" placeholder="Descrição"></textarea>
-<input id="pPreco" placeholder="Preço">
-<input id="pEAN" placeholder="EAN-13">
-<select id="pCategoria">
- <option value="">Selecione uma categoria</option>
-</select>
-<input type="file" id="pImg" hidden>
-<button onclick="pImg.click()">Escolher Imagem</button>
-<button onclick="salvarProduto()">Salvar Produto</button>
-
-<hr>
-
-<h4>⚠️ Produtos Incompletos (Pendentes de Edição)</h4>
-<div id="produtosIncompletos"></div>
-
-<hr>
-
-<h4>🚀 Importação em Lote</h4>
-<input type="file" id="pLote" multiple accept="image/*" hidden onchange="prepararLote(this)">
-<button onclick="pLote.click()" style="background: #2196F3;">Selecionar Várias Imagens</button>
-<div id="areaLote" class="hide">
-    <h5>Editar itens do lote:</h5>
-    <div id="listaLote"></div>
-    <button onclick="salvarLote()" style="background: #4CAF50;">Salvar Todos do Lote</button>
-</div>
-
-<hr>
-
-<h4>👤 Criar Usuário</h4>
-<input id="novoUser" placeholder="Usuário ou Email">
-<input id="novaSenha" type="password" placeholder="Senha">
-<select id="nivelUser">
- <option value="admin">Administrador</option>
- <option value="vendedor">Vendedor</option>
- <option value="cliente">Cliente</option>
-</select>
-<button onclick="criarUsuario()">Criar Usuário</button>
-
-<hr>
-
-<h4>📱 Configurar WhatsApp</h4>
-<input id="whatsappNumber" placeholder="Digite seu número (ex: 5511999999999)">
-<button onclick="salvarWhatsapp()" style="background: #25D366;">Salvar Número WhatsApp</button>
-<div id="whatsappStatus" style="margin-top: 10px; font-size: 13px; color: #666;"></div>
-
-<hr>
-
-<h4>Produtos cadastrados</h4>
-<div id="listaAdmin"></div>
-
-<hr>
-
-<h4>🧾 Histórico</h4>
-<div class="hist-container" id="historicoAdmin"></div>
-<button onclick="limparHistorico()">Limpar Histórico</button>
-
-<button onclick="voltarCatalogo()">Voltar</button>
-</div>
-
-<!-- WhatsApp Floating Button -->
+<!-- WHATSAPP FLOATING BUTTON -->
 <div class="whatsapp-container">
-    <div class="whatsapp-menu" id="whatsappMenu">
-        <div style="margin-bottom: 10px;">
-            <label style="font-size: 12px; font-weight: 600; color: #333;">Número WhatsApp:</label>
-            <input type="text" id="whatsappInput" placeholder="5511999999999" style="margin-top: 4px;">
-        </div>
-        <button onclick="abrirWhatsapp()">💬 Abrir WhatsApp</button>
-        <div class="whatsapp-info">
-            <p style="margin: 0;">Salve seu número no Painel Administrativo para que ele fique persistente.</p>
-            <div class="whatsapp-number-display" id="whatsappNumberDisplay"></div>
-        </div>
-    </div>
-    <button class="whatsapp-btn" onclick="toggleWhatsappMenu()" title="Abrir WhatsApp">
-        💬
-    </button>
+ <button class="whatsapp-btn" onclick="toggleWhatsappMenu()">💬</button>
+ <div id="whatsappMenu" class="whatsapp-menu">
+  <input type="text" id="whatsappInput" placeholder="Número WhatsApp (com código país)">
+  <button onclick="abrirWhatsapp()">📱 Abrir WhatsApp</button>
+  <div class="whatsapp-info">
+   <strong>Número Salvo:</strong>
+   <div id="whatsappNumberDisplay" class="whatsapp-number-display">Carregando...</div>
+  </div>
+ </div>
 </div>
 
-<footer>Desenvolvido por: Andrews Pablo!</footer>
+<footer>
+ Desenvolvido por: Andrews Pablo | Data: 16 de Janeiro de 2026
+</footer>
 
 <script>
 /* ========== CONFIGURAÇÃO DA API ========== */
 const API_URL = 'https://temtudo1.onrender.com/api';
 
+/* ========== VERIFICAR CONEXÃO COM API ========== */
+async function verificarConexaoAPI() {
+  try {
+    const response = await fetch(`${API_URL}/health`);
+    const data = await response.json();
+    if (data.success) {
+      document.getElementById('apiStatus').className = 'api-status connected';
+      document.getElementById('apiStatus').textContent = '🟢 Conectado à API';
+      return true;
+    }
+  } catch (err) {
+    document.getElementById('apiStatus').className = 'api-status disconnected';
+    document.getElementById('apiStatus').textContent = '🔴 Desconectado da API';
+    return false;
+  }
+}
+
 /* ========== FUNÇÕES DE INTEGRAÇÃO COM API ========== */
 
-// Criar produto na API
-async function criarProdutoAPI(produto) {
+// Criar usuário na API
+async function criarUsuarioAPI(usuario) {
   try {
-    const response = await fetch(`${API_URL}/products`, {
+    const response = await fetch(`${API_URL}/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(produto)
+      body: JSON.stringify(usuario)
     });
     const data = await response.json();
     if (data.success) {
-      console.log('✅ Produto criado na API');
+      console.log('✅ Usuário criado na API');
     }
   } catch (err) {
-    console.error('Erro ao criar produto na API:', err);
+    console.error('Erro ao criar usuário na API:', err);
   }
 }
 
@@ -592,6 +688,23 @@ async function criarCategoriaAPI(categoria) {
     }
   } catch (err) {
     console.error('Erro ao criar categoria na API:', err);
+  }
+}
+
+// Criar produto na API
+async function criarProdutoAPI(produto) {
+  try {
+    const response = await fetch(`${API_URL}/products`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(produto)
+    });
+    const data = await response.json();
+    if (data.success) {
+      console.log('✅ Produto criado na API');
+    }
+  } catch (err) {
+    console.error('Erro ao criar produto na API:', err);
   }
 }
 
@@ -630,12 +743,18 @@ let produtos=JSON.parse(localStorage.getItem("produtos")||"[]");
 let produtosIncompletos=JSON.parse(localStorage.getItem("produtosIncompletos")||"[]");
 let pedidos=JSON.parse(localStorage.getItem("pedidos")||"[]");
 let categorias=JSON.parse(localStorage.getItem("categorias")||"[]");
-let whatsappNumber = localStorage.getItem("whatsappNumber") || "";
+let formasPagamento=JSON.parse(localStorage.getItem("formasPagamento")||"[]");
+let contatos=JSON.parse(localStorage.getItem("contatos")||"[]");
+let whatsappNumbers=JSON.parse(localStorage.getItem("whatsappNumbers")||"[]");
 let usuarioAtual=null,carrinho={};
 let editandoIndice = -1;
 let itensLote = [];
 let pedidoSendoEditadoIdx = -1;
 let pedidosFiltrados = [];
+
+/* ===== VERIFICAR CONEXÃO NA INICIALIZAÇÃO ===== */
+verificarConexaoAPI();
+setInterval(verificarConexaoAPI, 30000); // Verificar a cada 30 segundos
 
 /* ===== PERSISTÊNCIA DE LOGIN ===== */
 (function(){
@@ -644,11 +763,13 @@ let pedidosFiltrados = [];
   usuarioAtual = sessao;
   loginBox.classList.add("hide");
   catalogo.classList.remove("hide");
+  document.getElementById('usuarioDisplay').textContent = `👤 ${sessao.nome}`;
   if(sessao.nivel==="cliente")document.querySelector(".admin-btn").style.display="none";
   atualizarSelectCategorias();
+  atualizarSelectFormasPagamento();
+  atualizarWhatsappDisplay();
   renderCatalogo();
  }
- atualizarWhatsappDisplay();
 })();
 
 /* ===== LOGIN ===== */
@@ -659,9 +780,21 @@ function login(){
  sessionStorage.setItem("sessaoAtual", JSON.stringify(usuarioAtual));
  loginBox.classList.add("hide");
  catalogo.classList.remove("hide");
+ document.getElementById('usuarioDisplay').textContent = `👤 ${usuarioAtual.nome}`;
  if(u.nivel==="cliente")document.querySelector(".admin-btn").style.display="none";
  atualizarSelectCategorias();
+ atualizarSelectFormasPagamento();
+ atualizarWhatsappDisplay();
  renderCatalogo();
+}
+
+function logout(){
+ sessionStorage.removeItem("sessaoAtual");
+ usuarioAtual = null;
+ loginBox.classList.remove("hide");
+ catalogo.classList.add("hide");
+ loginUser.value = "";
+ loginSenha.value = "";
 }
 
 function esqueciSenha(){
@@ -681,6 +814,54 @@ function esqueciSenha(){
  }
 }
 
+/* ===== USUÁRIOS ===== */
+function criarUsuario(){
+ const nome = document.getElementById('novoUsuario').value.trim();
+ const senha = document.getElementById('novoSenha').value.trim();
+ const nivel = document.getElementById('novoNivel').value;
+ 
+ if(!nome || !senha || !nivel) return alert("Preencha todos os campos");
+ if(usuarios[nome]) return alert("Usuário já existe");
+ 
+ usuarios[nome] = {senha: senha, nivel: nivel};
+ localStorage.setItem("usuarios", JSON.stringify(usuarios));
+ 
+ // Enviar para API
+ criarUsuarioAPI({
+  name: nome,
+  password: senha,
+  level: nivel
+ });
+ 
+ document.getElementById('novoUsuario').value = '';
+ document.getElementById('novoSenha').value = '';
+ document.getElementById('novoNivel').value = '';
+ atualizarListaUsuarios();
+ alert("Usuário criado com sucesso!");
+}
+
+function atualizarListaUsuarios(){
+ const lista = document.getElementById('listaUsuarios');
+ lista.innerHTML = '';
+ for(let user in usuarios){
+  if(user !== 'admin'){
+   lista.innerHTML += `
+    <div class="categoria-item">
+     <span>${user} (${usuarios[user].nivel})</span>
+     <button onclick="excluirUsuario('${user}')" style="background:#f44336">🗑️</button>
+    </div>`;
+  }
+ }
+}
+
+function excluirUsuario(nome){
+ if(confirm("Excluir usuário?")){
+  delete usuarios[nome];
+  localStorage.setItem("usuarios", JSON.stringify(usuarios));
+  atualizarListaUsuarios();
+ }
+}
+
 /* ===== CATEGORIAS ===== */
 function adicionarCategoria(){
  const nome = document.getElementById('novaCategoria').value.trim();
@@ -688,9 +869,6 @@ function adicionarCategoria(){
  if(categorias.find(c => c.toLowerCase() === nome.toLowerCase())) return alert("Categoria já existe");
  categorias.push(nome);
  localStorage.setItem("categorias", JSON.stringify(categorias));
- document.getElementById('novaCategoria').value = '';
- atualizarSelectCategorias();
- atualizarListaCategorias();
  
  // Enviar para API
  criarCategoriaAPI({
@@ -698,6 +876,9 @@ function adicionarCategoria(){
   description: nome
  });
  
+ document.getElementById('novaCategoria').value = '';
+ atualizarSelectCategorias();
+ atualizarListaCategorias();
  alert("Categoria adicionada com sucesso!");
 }
 
@@ -727,261 +908,541 @@ function atualizarSelectCategorias(){
 }
 
 function atualizarListaCategorias(){
- const container = document.getElementById('listaCategoriasAdmin');
- if(categorias.length === 0){
-  container.innerHTML = '<p style="color: #666; font-style: italic;">Nenhuma categoria cadastrada ainda.</p>';
-  return;
- }
- container.innerHTML = '';
+ const lista = document.getElementById('listaCategoriasAdmin');
+ lista.innerHTML = '';
  categorias.forEach((cat, idx) => {
-  container.innerHTML += `
+  lista.innerHTML += `
    <div class="categoria-item">
-    <strong>${cat}</strong>
-    <button onclick="excluirCategoria(${idx})" style="background: #f44336;">🗑️ Excluir</button>
+    <span>📂 ${cat}</span>
+    <button onclick="excluirCategoria(${idx})" style="background:#f44336">🗑️</button>
    </div>`;
  });
 }
 
-/* ===== ALERTA DE PRODUTOS INCOMPLETOS ===== */
-function atualizarAlertaIncompletos(){
-    const alerta = document.getElementById('alertaIncompletos');
-    if(produtosIncompletos.length > 0){
-        alerta.innerHTML = `
-        <div class="alert-incompletos">
-            <strong>⚠️ Você tem ${produtosIncompletos.length} produto(s) incompleto(s) aguardando edição!</strong>
-            <p>Esses produtos foram importados mas faltam informações (descrição, preço, categoria ou EAN-13).</p>
-            <button onclick="abrirAdmin(); setTimeout(() => { document.querySelector('#admin').scrollIntoView(); }, 100);">
-                ✏️ Editar Agora
-            </button>
-        </div>`;
-    } else {
-        alerta.innerHTML = '';
+/* ===== FORMAS DE PAGAMENTO ===== */
+function adicionarFormaPagamento(){
+ const nome = document.getElementById('novaFormaPagamento').value.trim();
+ if(!nome) return alert("Digite o nome da forma de pagamento");
+ if(formasPagamento.find(f => f.toLowerCase() === nome.toLowerCase())) return alert("Forma de pagamento já existe");
+ formasPagamento.push(nome);
+ localStorage.setItem("formasPagamento", JSON.stringify(formasPagamento));
+ document.getElementById('novaFormaPagamento').value = '';
+ atualizarSelectFormasPagamento();
+ atualizarListaFormasPagamento();
+ alert("Forma de pagamento adicionada com sucesso!");
+}
+
+function excluirFormaPagamento(idx){
+ if(confirm("Deseja excluir esta forma de pagamento?")){
+  formasPagamento.splice(idx, 1);
+  localStorage.setItem("formasPagamento", JSON.stringify(formasPagamento));
+  atualizarSelectFormasPagamento();
+  atualizarListaFormasPagamento();
+ }
+}
+
+function atualizarSelectFormasPagamento(){
+ const select = document.getElementById('pagamento');
+ if(!select) return;
+ const valor = select.value;
+ select.innerHTML = '<option value="">Selecione a forma de pagamento</option>';
+ formasPagamento.forEach(forma => {
+  const option = document.createElement('option');
+  option.value = forma;
+  option.textContent = forma;
+  select.appendChild(option);
+ });
+ select.value = valor;
+}
+
+function atualizarListaFormasPagamento(){
+ const lista = document.getElementById('listaFormasPagamento');
+ lista.innerHTML = '';
+ formasPagamento.forEach((forma, idx) => {
+  lista.innerHTML += `
+   <div class="categoria-item">
+    <span>💳 ${forma}</span>
+    <button onclick="excluirFormaPagamento(${idx})" style="background:#f44336">🗑️</button>
+   </div>`;
+ });
+}
+
+/* ===== CONTATOS ===== */
+function adicionarContato(){
+ const nome = document.getElementById('novoContatoNome').value.trim();
+ const email = document.getElementById('novoContatoEmail').value.trim();
+ const telefone = document.getElementById('novoContatoTelefone').value.trim();
+ const mensagem = document.getElementById('novoContatoMensagem').value.trim();
+ 
+ if(!nome || !email) return alert("Preencha nome e email");
+ 
+ const contato = {
+  nome: nome,
+  email: email,
+  telefone: telefone,
+  mensagem: mensagem,
+  data: new Date().toLocaleString('pt-BR')
+ };
+ 
+ contatos.push(contato);
+ localStorage.setItem("contatos", JSON.stringify(contatos));
+ 
+ document.getElementById('novoContatoNome').value = '';
+ document.getElementById('novoContatoEmail').value = '';
+ document.getElementById('novoContatoTelefone').value = '';
+ document.getElementById('novoContatoMensagem').value = '';
+ 
+ atualizarListaContatos();
+ alert("Contato adicionado com sucesso!");
+}
+
+function excluirContato(idx){
+ if(confirm("Deseja excluir este contato?")){
+  contatos.splice(idx, 1);
+  localStorage.setItem("contatos", JSON.stringify(contatos));
+  atualizarListaContatos();
+ }
+}
+
+function atualizarListaContatos(){
+ const lista = document.getElementById('listaContatos');
+ lista.innerHTML = '';
+ contatos.forEach((contato, idx) => {
+  lista.innerHTML += `
+   <div class="categoria-item" style="flex-direction:column;align-items:flex-start">
+    <strong>${contato.nome}</strong>
+    <small>📧 ${contato.email} | 📱 ${contato.telefone || 'N/A'}</small>
+    <small style="color:#666">${contato.mensagem}</small>
+    <small style="color:#999">${contato.data}</small>
+    <button onclick="excluirContato(${idx})" style="background:#f44336;width:auto;padding:5px 10px;margin-top:5px">🗑️ Excluir</button>
+   </div>`;
+ });
+}
+
+/* ===== WHATSAPP ===== */
+function adicionarWhatsapp(){
+ const numero = document.getElementById('novoWhatsapp').value.trim();
+ if(!numero) return alert("Digite um número válido");
+ if(whatsappNumbers.find(w => w === numero)) return alert("Número já existe");
+ 
+ whatsappNumbers.push(numero);
+ localStorage.setItem("whatsappNumbers", JSON.stringify(whatsappNumbers));
+ document.getElementById('novoWhatsapp').value = '';
+ atualizarListaWhatsapp();
+ atualizarWhatsappDisplay();
+ alert("Número WhatsApp adicionado com sucesso!");
+}
+
+function excluirWhatsapp(idx){
+ if(confirm("Deseja excluir este número?")){
+  whatsappNumbers.splice(idx, 1);
+  localStorage.setItem("whatsappNumbers", JSON.stringify(whatsappNumbers));
+  atualizarListaWhatsapp();
+  atualizarWhatsappDisplay();
+ }
+}
+
+function atualizarListaWhatsapp(){
+ const lista = document.getElementById('listaWhatsapp');
+ lista.innerHTML = '';
+ whatsappNumbers.forEach((numero, idx) => {
+  lista.innerHTML += `
+   <div class="categoria-item">
+    <span>📱 ${numero}</span>
+    <button onclick="excluirWhatsapp(${idx})" style="background:#f44336">🗑️</button>
+   </div>`;
+ });
+}
+
+function atualizarWhatsappDisplay(){
+ const display = document.getElementById('whatsappNumberDisplay');
+ if(whatsappNumbers.length > 0){
+  display.textContent = whatsappNumbers[0];
+ } else {
+  display.textContent = 'Nenhum número configurado';
+ }
+}
+
+function toggleWhatsappMenu(){
+    const menu = document.getElementById('whatsappMenu');
+    menu.classList.toggle('show');
+    if(menu.classList.contains('show')){
+        document.getElementById('whatsappInput').value = whatsappNumbers[0] || '';
+        document.getElementById('whatsappInput').focus();
     }
 }
 
-/* ===== CATÁLOGO COM ZOOM DIRETO E ROLAGEM HORIZONTAL ===== */
+function abrirWhatsapp(){
+    const numero = document.getElementById('whatsappInput').value.trim();
+    if(!numero){
+        alert("Por favor, digite um número de WhatsApp válido");
+        return;
+    }
+    const url = `https://wa.me/${numero}?text=Olá! Gostaria de mais informações sobre os produtos.`;
+    window.open(url, '_blank');
+}
+
+/* ===== PRODUTOS ===== */
 function renderCatalogo(){
- lista.innerHTML="";
- const busca = searchCatalogo.value.toLowerCase();
- const filtro = filterCatalogo.value;
- const categoria = filterCategoria.value;
+ const search = document.getElementById('searchProduto').value.toLowerCase();
+ const categoria = document.getElementById('filterCategoria').value;
+ const grid = document.getElementById('catalogo_grid');
  
- let exibicao = produtos.filter(p => {
-  const matchBusca = p.desc.toLowerCase().includes(busca) || (p.ean && p.ean.toLowerCase().includes(busca));
-  const matchCategoria = !categoria || p.categoria === categoria;
-  return matchBusca && matchCategoria;
+ grid.innerHTML = '';
+ produtos.forEach((p, i) => {
+  if((p.desc.toLowerCase().includes(search)) && (!categoria || p.categoria === categoria)){
+   grid.innerHTML += `
+    <div class="card">
+     <div class="img-container">
+      <img src="${p.img}" alt="${p.desc}">
+     </div>
+     <strong>${p.desc}</strong>
+     <p class="price">R$ ${p.preco.toFixed(2)}</p>
+     <small style="color:#666">EAN: ${p.ean || '---'}</small>
+     <br>
+     <small class="categoria-badge">📂 ${p.categoria || 'Sem categoria'}</small>
+     <br>
+     <input type="number" id="qtd_${i}" value="1" min="1" style="margin-top:5px;padding:5px">
+     <button onclick="add(${i}, document.getElementById('qtd_${i}').value)" style="margin-top:5px">🛒 Adicionar</button>
+    </div>`;
+  }
  });
- 
- if(filtro === 'recente') exibicao.sort((a,b) => new Date(b.ultimaEdicao || 0) - new Date(a.ultimaEdicao || 0));
- else if(filtro === 'az') exibicao.sort((a,b) => a.desc.localeCompare(b.desc));
- else if(filtro === 'za') exibicao.sort((a,b) => b.desc.localeCompare(a.desc));
-
- exibicao.forEach((p)=>{
-  const i = produtos.indexOf(p);
-  lista.innerHTML+=`
-  <div class="card">
-   <div class="img-container" onmousemove="zoomIn(event, this)" onmouseleave="zoomOut(this)">
-    <div class="zoom-lens"></div>
-    <img src="${p.img}">
-   </div>
-   <p>${p.desc}</p>
-   ${p.categoria ? `<span class="categoria-badge">📂 ${p.categoria}</span>` : ''}
-   <div class="price">R$ ${p.preco.toFixed(2)}</div>
-   <input type="number" min="0" value="${carrinho[i]?.q || 0}" oninput="add(${i},this.value)">
-  </div>`;
- });
- 
- atualizarAlertaIncompletos();
 }
 
-function zoomIn(e, container) {
-    const img = container.querySelector('img');
-    const lens = container.querySelector('.zoom-lens');
-    lens.style.display = "block";
-    const rect = container.getBoundingClientRect();
-    let x = e.clientX - rect.left;
-    let y = e.clientY - rect.top;
-    if (x > rect.width - 40) x = rect.width - 40;
-    if (x < 40) x = 40;
-    if (y > rect.height - 40) y = rect.height - 40;
-    if (y < 40) y = 40;
-    lens.style.left = (x - 40) + "px";
-    lens.style.top = (y - 40) + "px";
-    img.style.transformOrigin = `${(x / rect.width) * 100}% ${(y / rect.height) * 100}%`;
-    img.style.transform = "scale(2.5)";
-}
-
-function zoomOut(container) {
-    const img = container.querySelector('img');
-    const lens = container.querySelector('.zoom-lens');
-    lens.style.display = "none";
-    img.style.transform = "scale(1)";
-}
-
-/* ===== CARRINHO ===== */
-function add(i, q){
- q = parseInt(q) || 0;
- if(q > 0) carrinho[i] = {desc: produtos[i].desc, preco: produtos[i].preco, q};
+function add(i,q){
+ q=Number(q);
+ if(q>0)carrinho[i]={q:q,preco:Number(produtos[i].preco), desc: produtos[i].desc, ean: produtos[i].ean || "---", categoria: produtos[i].categoria || "---"};
  else delete carrinho[i];
+ calcularTotal();
  renderCarrinho();
+}
+
+function calcularTotal(){
+ let t=0;
+ for(let k in carrinho)t+=carrinho[k].q*carrinho[k].preco;
+ document.getElementById('total').innerText=t.toFixed(2);
 }
 
 function renderCarrinho(){
- carrinhoCont.innerHTML = "";
- let t = 0;
- Object.keys(carrinho).forEach(i => {
+ const grid = document.getElementById('carrinho_grid');
+ grid.innerHTML = '';
+ for(let i in carrinho){
   const item = carrinho[i];
-  const subtotal = item.preco * item.q;
-  t += subtotal;
-  carrinhoCont.innerHTML += `
-   <div style="display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #ddd;">
-    <span>${item.desc} x${item.q}</span>
-    <span>R$ ${subtotal.toFixed(2)}</span>
+  grid.innerHTML += `
+   <div class="card">
+    <strong>${item.desc}</strong>
+    <p class="price">R$ ${item.preco.toFixed(2)}</p>
+    <small>Qtd: ${item.q}</small>
+    <br>
+    <small class="categoria-badge">📂 ${item.categoria}</small>
+    <br>
+    <input type="number" id="qtd_carr_${i}" value="${item.q}" min="1" style="margin-top:5px;padding:5px">
+    <button onclick="add(${i}, document.getElementById('qtd_carr_${i}').value)" style="margin-top:5px;background:#2196F3">✏️ Atualizar</button>
+    <button onclick="add(${i}, 0)" style="margin-top:5px;background:#f44336">🗑️ Remover</button>
    </div>`;
- });
- total.innerText = "R$ " + t.toFixed(2);
-}
-
-function limparCarrinho(){
- if(confirm("Deseja limpar o carrinho?")){
-  carrinho = {};
-  renderCarrinho();
  }
 }
 
-function finalizarPedido(){
- if(Object.keys(carrinho).length === 0) return alert("Carrinho vazio");
- const pagto = pagamento.value.trim();
- if(!pagto) return alert("Informe a forma de pagamento");
- 
- const timestamp = new Date().toLocaleString('pt-BR');
- const total_value = parseFloat(total.innerText.replace('R$ ', ''));
- 
- const pedido = {
-  itens: carrinho,
-  total: total_value,
-  pagamento: pagto,
-  data: timestamp.split(' ')[0],
-  status: 'aberto'
- };
- 
- pedidos.push(pedido);
- localStorage.setItem("pedidos", JSON.stringify(pedidos));
- 
- // Enviar para API
- criarPedidoAPI({
-  user_id: null,
-  total_price: total_value,
-  status: 'pending'
- });
- 
- alert("✅ Pedido finalizado com sucesso!");
- carrinho = {};
- pagamento.value = "";
- renderCarrinho();
- atualizarHistorico();
+/* ===== EXPORTAÇÃO PDF ===== */
+function exportarPDF(idx){
+    const p = pedidos[idx];
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(18);
+    doc.text("Tem Tudo - Utilidades e Variedades", 105, 15, { align: "center" });
+    doc.setFontSize(10);
+    doc.text(`Data: ${p.data}`, 105, 22, { align: "center" });
+    doc.text(`Forma de Pagamento: ${p.pagamento || 'Não informada'}`, 105, 27, { align: "center" });
+    
+    const rows = [];
+    for(let k in p.itens){
+        rows.push([
+            p.itens[k].ean || "---",
+            p.itens[k].desc, 
+            p.itens[k].categoria || "---",
+            `R$ ${p.itens[k].preco.toFixed(2)}`, 
+            p.itens[k].q, 
+            `R$ ${(p.itens[k].preco * p.itens[k].q).toFixed(2)}`
+        ]);
+    }
+    
+    doc.autoTable({
+        head: [['EAN-13', 'Produto', 'Categoria', 'Preço Unit.', 'Qtd', 'Subtotal']],
+        body: rows,
+        startY: 35,
+        theme: 'striped',
+        headStyles: { fillColor: [17, 17, 17] },
+        foot: [['', '', '', '', 'TOTAL:', `R$ ${p.total}`]],
+        footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' }
+    });
+    
+    const finalY = doc.lastAutoTable.finalY || 35;
+    doc.setFontSize(10);
+    doc.text("Assinatura do Cliente: ___________________________", 10, finalY + 20);
+    doc.setFontSize(9);
+    doc.setTextColor(100);
+    doc.text("Desenvolvido por: Andrews Pablo!", 105, 285, { align: "center" });
+    doc.save(`pedido_${idx+1}.pdf`);
 }
 
-/* ===== HISTÓRICO E RETOMADA ===== */
-function atualizarHistorico(){
- renderHistorico(pedidos);
+/* ===== EXPORTAÇÃO EXCEL ===== */
+function exportarExcel(idx){
+    const p = pedidos[idx];
+    const data = [
+        ["Tem Tudo - Utilidades e Variedades"],
+        ["RELATÓRIO DE PEDIDO PROFISSIONAL"],
+        ["Data:", p.data],
+        ["Pagamento:", p.pagamento || "Não informado"],
+        [],
+        ["EAN-13", "DESCRIÇÃO DO PRODUTO", "CATEGORIA", "PREÇO UNIT.", "QUANTIDADE", "SUBTOTAL"]
+    ];
+    
+    for(let k in p.itens) {
+        data.push([
+            p.itens[k].ean || "---", 
+            p.itens[k].desc, 
+            p.itens[k].categoria || "---",
+            p.itens[k].preco, 
+            p.itens[k].q, 
+            p.itens[k].preco * p.itens[k].q
+        ]);
+    }
+    
+    data.push([], ["", "", "", "", "TOTAL GERAL:", parseFloat(p.total)], [], ["Desenvolvido por: Andrews Pablo!"]);
+    
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    
+    const colWidths = data.reduce((acc, row) => {
+        row.forEach((cell, i) => {
+            const cellLen = cell ? cell.toString().length : 0;
+            acc[i] = Math.max(acc[i] || 10, cellLen + 2);
+        });
+        return acc;
+    }, []);
+    ws['!cols'] = colWidths.map(w => ({ wch: w }));
+    
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Pedido");
+    XLSX.writeFile(wb, `pedido_${idx+1}.xlsx`);
 }
 
-function renderHistorico(lista){
- historicoAdmin.innerHTML="";
- lista.forEach((p,i)=>{
-  const idxReal = pedidos.indexOf(p);
-  const icon = p.status === 'fechado' ? 
-    '<span class="status-icon status-fechado">✅ Fechado</span>' : 
-    '<span class="status-icon status-andamento">⏳ Em Andamento</span>';
-  
-  historicoAdmin.innerHTML+=`
-    <div class="hist-item">
-        <div class="hist-info">
-            ${icon} <br>
-            <strong>Pedido #${idxReal+1}</strong> - R$ ${p.total} <br>
-            <small>${p.data}</small>
-        </div>
-        <div class="hist-actions">
-            <button onclick="exportarPDF(${idxReal})" style="background:#2196F3;">📄 PDF</button>
-            <button onclick="exportarExcel(${idxReal})" style="background:#4CAF50;">📊 Excel</button>
-            <button onclick="retomarPedido(${idxReal})">🔄 Retomar</button>
-            <button onclick="excluirPedidoHist(${idxReal})" style="background:#f44336;">🗑️</button>
-        </div>
-    </div>`;
- });
- atualizarGrafico();
+/* ===== PEDIDOS ===== */
+function salvarPedido(){
+    if(!Object.keys(carrinho).length) return alert("Carrinho vazio");
+    const novoPedido = {
+        total: document.getElementById('total').innerText,
+        data: new Date().toLocaleString('pt-BR'),
+        status: 'andamento',
+        pagamento: document.getElementById('pagamento').value,
+        itens: JSON.parse(JSON.stringify(carrinho))
+    };
+    if(pedidoSendoEditadoIdx >= 0){
+        pedidos[pedidoSendoEditadoIdx] = novoPedido;
+        pedidoSendoEditadoIdx = -1;
+    } else {
+        pedidos.push(novoPedido);
+    }
+    localStorage.setItem("pedidos", JSON.stringify(pedidos));
+    
+    // Enviar para API
+    criarPedidoAPI({
+      user_id: null,
+      total_price: parseFloat(document.getElementById('total').innerText),
+      status: 'pending'
+    });
+    
+    alert("Pedido salvo como 'Em Andamento'!");
+    limparCamposPedido();
+    atualizarHistorico();
 }
 
-function retomarPedido(i){
-    const p = pedidos[i];
-    carrinho = JSON.parse(JSON.stringify(p.itens));
-    total.innerText = p.total;
-    pagamento.value = p.pagamento || "";
-    pedidoSendoEditadoIdx = i;
-    voltarCatalogo();
+function fecharPedido(){
+    const s=prompt("Digite sua senha para FECHAR o pedido:");
+    if(!s||usuarios[usuarioAtual.nome].senha!==s)return alert("Senha inválida");
+    if(!Object.keys(carrinho).length) return alert("Carrinho vazio");
+    const novoPedido = {
+        total: document.getElementById('total').innerText,
+        data: new Date().toLocaleString('pt-BR'),
+        status: 'fechado',
+        pagamento: document.getElementById('pagamento').value,
+        itens: JSON.parse(JSON.stringify(carrinho))
+    };
+    if(pedidoSendoEditadoIdx >= 0){
+        pedidos[pedidoSendoEditadoIdx] = novoPedido;
+        pedidoSendoEditadoIdx = -1;
+    } else {
+        pedidos.push(novoPedido);
+    }
+    localStorage.setItem("pedidos", JSON.stringify(pedidos));
+    
+    // Enviar para API
+    criarPedidoAPI({
+      user_id: null,
+      total_price: parseFloat(document.getElementById('total').innerText),
+      status: 'completed'
+    });
+    
+    alert("Pedido fechado com sucesso!");
+    limparCamposPedido();
+    atualizarHistorico();
+}
+
+function limparCamposPedido(){
+    carrinho={}; 
+    document.getElementById('total').innerText="0.00"; 
+    document.getElementById('pagamento').value="";
+    const c = document.getElementById('assinatura');
+    const ctx = c.getContext("2d");
+    ctx.clearRect(0,0,c.width,c.height);
     renderCatalogo();
-    alert(`Pedido #${i+1} retomado para edição.`);
+    renderCarrinho();
 }
 
-function excluirPedidoHist(i){
-    if(confirm("Deseja excluir este pedido do histórico?")){
-        pedidos.splice(i, 1);
+/* ===== FILTRO DE DATA NO HISTÓRICO ===== */
+function atualizarAnosDisponiveis(){
+    const anos = new Set();
+    pedidos.forEach(p => {
+        const ano = p.data.split('/')[2];
+        if(ano) anos.add(ano);
+    });
+    
+    const selectAno = document.getElementById('filtroAno');
+    const anoAtual = selectAno.value;
+    selectAno.innerHTML = '<option value="">Todos os Anos</option>';
+    Array.from(anos).sort().reverse().forEach(ano => {
+        const option = document.createElement('option');
+        option.value = ano;
+        option.textContent = ano;
+        selectAno.appendChild(option);
+    });
+    selectAno.value = anoAtual;
+}
+
+function filtrarHistoricoPorData(){
+    const data = document.getElementById('filtroData').value;
+    const mes = document.getElementById('filtroMes').value;
+    const ano = document.getElementById('filtroAno').value;
+    
+    pedidosFiltrados = pedidos.filter(p => {
+        const [dia, mesP, anoP] = p.data.split('/');
+        
+        if(data){
+            const [anoF, mesF, diaF] = data.split('-');
+            return dia === diaF && mesP === mesF && anoP === anoF;
+        }
+        
+        if(mes && !ano) return mesP === mes;
+        if(ano && !mes) return anoP === ano;
+        if(mes && ano) return mesP === mes && anoP === ano;
+        
+        return true;
+    });
+    
+    renderHistorico(pedidosFiltrados);
+}
+
+function limparFiltrosData(){
+    document.getElementById('filtroData').value = '';
+    document.getElementById('filtroMes').value = '';
+    document.getElementById('filtroAno').value = '';
+    pedidosFiltrados = [];
+    atualizarHistorico();
+}
+
+function renderHistorico(lista = pedidos){
+    const container = document.getElementById('historico');
+    container.innerHTML = '';
+    
+    if(lista.length === 0){
+        container.innerHTML = '<p style="color: #666; font-style: italic;">Nenhum pedido encontrado. 📭</p>';
+        return;
+    }
+    
+    lista.forEach((p, idx) => {
+        const statusClass = p.status === 'fechado' ? 'status-fechado' : 'status-andamento';
+        const statusIcon = p.status === 'fechado' ? '✅' : '⏳';
+        
+        let itensHTML = '';
+        for(let k in p.itens){
+            itensHTML += `<small>• ${p.itens[k].desc} (${p.itens[k].q}x)</small><br>`;
+        }
+        
+        container.innerHTML += `
+        <div class="hist-item">
+            <div class="hist-info">
+                <strong><span class="status-icon ${statusClass}">${statusIcon}</span> Pedido #${idx+1}</strong><br>
+                <small>📅 ${p.data} | 💳 ${p.pagamento || 'N/A'}</small><br>
+                <small><strong>Total: R$ ${p.total}</strong></small><br>
+                <small style="color:#666">${itensHTML}</small>
+            </div>
+            <div class="hist-actions">
+                <button onclick="editarPedido(${idx})" style="background:#2196F3">✏️ Editar</button>
+                <button onclick="exportarPDF(${idx})" style="background:#FF5722">📄 PDF</button>
+                <button onclick="exportarExcel(${idx})" style="background:#4CAF50">📊 Excel</button>
+                <button onclick="excluirPedido(${idx})" style="background:#f44336">🗑️</button>
+            </div>
+        </div>`;
+    });
+}
+
+function atualizarHistorico(){
+    atualizarAnosDisponiveis();
+    renderHistorico();
+    atualizarGrafico();
+}
+
+function editarPedido(idx){
+    const p = pedidos[idx];
+    carrinho = JSON.parse(JSON.stringify(p.itens));
+    document.getElementById('total').innerText = p.total;
+    document.getElementById('pagamento').value = p.pagamento;
+    pedidoSendoEditadoIdx = idx;
+    renderCarrinho();
+    window.scrollTo(0, 0);
+}
+
+function excluirPedido(idx){
+    if(confirm("Deseja excluir este pedido?")){
+        pedidos.splice(idx, 1);
         localStorage.setItem("pedidos", JSON.stringify(pedidos));
         atualizarHistorico();
     }
 }
 
-/* ===== IMPORTAÇÃO EM LOTE COM PROTEÇÃO ===== */
-function prepararLote(input){
-    itensLote = [];
-    const files = Array.from(input.files);
-    let carregados = 0;
-    files.forEach((file, index) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const jaExiste = produtos.find(p => p.img === e.target.result || p.desc === file.name.split('.')[0]);
-            itensLote.push({ 
-                img: e.target.result, 
-                desc: file.name.split('.')[0], 
-                preco: "", 
-                ean: "",
-                categoria: "",
-                duplicado: !!jaExiste 
-            });
-            carregados++;
-            if(carregados === files.length) renderLote();
-        };
-        reader.readAsDataURL(file);
-    });
-}
-
-function renderLote(){
-    areaLote.classList.remove("hide");
-    listaLote.innerHTML = "";
-    itensLote.forEach((item, i) => {
-        const style = item.duplicado ? 'border: 2px solid #ff9800; background: #fff3e0;' : '';
-        const aviso = item.duplicado ? '<small style="color:#e65100;">⚠️ Já existe um produto similar!</small>' : '';
-        let categoriasOptions = '<option value="">Sem categoria</option>';
-        categorias.forEach(cat => {
-            categoriasOptions += `<option value="${cat}" ${item.categoria === cat ? 'selected' : ''}>${cat}</option>`;
-        });
-        listaLote.innerHTML += `
-        <div class="lote-item" style="${style}">
-            <div class="lote-header">
-                <img src="${item.img}">
-                <div>
-                    <strong>Item ${i+1}</strong> ${aviso}
+/* ===== IMPORTAR LOTE ===== */
+function processarLote(){
+    try {
+        itensLote = JSON.parse(document.getElementById('pLote').value);
+        if(!Array.isArray(itensLote)) throw new Error("Deve ser um array");
+        
+        const areaLote = document.getElementById('areaLote');
+        areaLote.innerHTML = '';
+        
+        itensLote.forEach((item, i) => {
+            areaLote.innerHTML += `
+            <div class="lote-item">
+                <div class="lote-header">
+                    <img src="${item.img}" alt="Produto">
+                    <strong>#${i+1}</strong>
                 </div>
-            </div>
-            <div class="lote-inputs">
-                <input placeholder="Descrição" value="${item.desc}" oninput="itensLote[${i}].desc=this.value">
-                <input placeholder="Preço" oninput="itensLote[${i}].preco=this.value">
-                <input placeholder="EAN-13" oninput="itensLote[${i}].ean=this.value">
-                <select oninput="itensLote[${i}].categoria=this.value">${categoriasOptions}</select>
-            </div>
-        </div>`;
-    });
+                <div class="lote-inputs">
+                    <input type="text" id="lote_desc_${i}" value="${item.desc || ''}" placeholder="Descrição">
+                    <input type="number" id="lote_preco_${i}" value="${item.preco || ''}" placeholder="Preço" step="0.01">
+                    <input type="text" id="lote_ean_${i}" value="${item.ean || ''}" placeholder="EAN-13">
+                    <select id="lote_cat_${i}">
+                        <option value="">Selecione categoria</option>
+                        ${categorias.map(c => `<option value="${c}">${c}</option>`).join('')}
+                    </select>
+                </div>
+            </div>`;
+        });
+        
+        areaLote.innerHTML += '<button onclick="salvarLote()" style="background:#4CAF50;margin-top:10px">✅ Salvar Lote</button>';
+        areaLote.classList.remove("hide");
+        document.querySelector('h4').scrollIntoView();
+    } catch(e) {
+        alert("JSON inválido: " + e.message);
+    }
 }
 
 function salvarLote(){
@@ -989,14 +1450,19 @@ function salvarLote(){
     let count = 0;
     let pulados = 0;
     let incompletos = 0;
-    itensLote.forEach(item => {
-        const duplicadoReal = produtos.find(p => (item.ean && p.ean === item.ean) || (p.desc === item.desc && p.img === item.img));
-        if(!duplicadoReal && item.desc && item.preco){
+    itensLote.forEach((item, i) => {
+        const desc = document.getElementById(`lote_desc_${i}`).value;
+        const preco = parseFloat(document.getElementById(`lote_preco_${i}`).value);
+        const ean = document.getElementById(`lote_ean_${i}`).value;
+        const categoria = document.getElementById(`lote_cat_${i}`).value;
+        
+        const duplicadoReal = produtos.find(p => (ean && p.ean === ean) || (p.desc === desc && p.img === item.img));
+        if(!duplicadoReal && desc && !isNaN(preco)){
             produtos.push({
-                desc: item.desc,
-                preco: parseFloat(item.preco.replace(',', '.')),
-                ean: item.ean || "LOTE",
-                categoria: item.categoria || "",
+                desc: desc,
+                preco: preco,
+                ean: ean || "LOTE",
+                categoria: categoria || "",
                 img: item.img,
                 criadoEm: timestamp,
                 ultimaEdicao: timestamp
@@ -1004,10 +1470,10 @@ function salvarLote(){
             count++;
         } else if(!duplicadoReal && item.img){
             produtosIncompletos.push({
-                desc: item.desc || "Sem descrição",
-                preco: item.preco || "",
-                ean: item.ean || "",
-                categoria: item.categoria || "",
+                desc: desc || "Sem descrição",
+                preco: preco || "",
+                ean: ean || "",
+                categoria: categoria || "",
                 img: item.img,
                 criadoEm: timestamp
             });
@@ -1018,8 +1484,8 @@ function salvarLote(){
     });
     localStorage.setItem("produtos", JSON.stringify(produtos));
     localStorage.setItem("produtosIncompletos", JSON.stringify(produtosIncompletos));
-    areaLote.classList.add("hide");
-    pLote.value = "";
+    document.getElementById('areaLote').classList.add("hide");
+    document.getElementById('pLote').value = "";
     let msg = `${count} produtos cadastrados com sucesso!`;
     if(incompletos > 0) msg += ` (${incompletos} produtos incompletos salvos para edição)`;
     if(pulados > 0) msg += ` (${pulados} itens ignorados por serem duplicados)`;
@@ -1071,52 +1537,35 @@ function atualizarListaIncompletos(){
 
 function editarIncompleto(i){
     const p = produtosIncompletos[i];
-    pDesc.value = p.desc === "Sem descrição" ? "" : p.desc;
-    pPreco.value = p.preco;
-    pEAN.value = p.ean;
-    pCategoria.value = p.categoria;
+    document.getElementById('pDesc').value = p.desc === "Sem descrição" ? "" : p.desc;
+    document.getElementById('pPreco').value = p.preco;
+    document.getElementById('pEAN').value = p.ean;
+    document.getElementById('pCategoria').value = p.categoria;
     editandoIndice = -1;
     
     document.querySelector('h4').scrollIntoView();
     
     alert(`Editando produto incompleto #${i+1}. Após salvar, ele será movido para produtos completos.`);
-    
     window.incomepletoEmEdicao = i;
-}
-
-function excluirIncompleto(i){
-    if(confirm("Deseja descartar este produto incompleto?")){
-        produtosIncompletos.splice(i, 1);
-        localStorage.setItem("produtosIncompletos", JSON.stringify(produtosIncompletos));
-        atualizarListaIncompletos();
-        atualizarAlertaIncompletos();
-    }
 }
 
 function completarIncompleto(i){
     const p = produtosIncompletos[i];
-    if(!p.desc || p.desc === "Sem descrição" || !p.preco || !p.ean || !p.categoria){
-        alert("Por favor, preencha todos os campos (Descrição, Preço, EAN-13 e Categoria) antes de completar.");
-        editarIncompleto(i);
-        return;
+    document.getElementById('pDesc').value = p.desc === "Sem descrição" ? "" : p.desc;
+    document.getElementById('pPreco').value = p.preco;
+    document.getElementById('pEAN').value = p.ean;
+    document.getElementById('pCategoria').value = p.categoria;
+    editandoIndice = -1;
+    window.incomepletoEmEdicao = i;
+    salvarProduto();
+}
+
+function excluirIncompleto(i){
+    if(confirm("Descartar este produto?")){
+        produtosIncompletos.splice(i, 1);
+        localStorage.setItem("produtosIncompletos", JSON.stringify(produtosIncompletos));
+        atualizarListaIncompletos();
     }
-    const timestamp = new Date().toLocaleString('pt-BR');
-    produtos.push({
-        desc: p.desc,
-        preco: parseFloat(p.preco.replace(',', '.')),
-        ean: p.ean,
-        categoria: p.categoria,
-        img: p.img,
-        criadoEm: p.criadoEm,
-        ultimaEdicao: timestamp
-    });
-    produtosIncompletos.splice(i, 1);
-    localStorage.setItem("produtos", JSON.stringify(produtos));
-    localStorage.setItem("produtosIncompletos", JSON.stringify(produtosIncompletos));
-    alert("✅ Produto completado e salvo com sucesso!");
-    atualizarListaIncompletos();
-    atualizarAdmin();
-    renderCatalogo();
 }
 
 /* ===== GRÁFICO DE VENDAS POR MÊS ===== */
@@ -1124,6 +1573,7 @@ let graficoInstance = null;
 function atualizarGrafico(){
     if(graficoInstance) graficoInstance.destroy();
     
+    // Agrupar vendas por mês
     const vendasPorMes = {};
     const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
     
@@ -1136,7 +1586,7 @@ function atualizarGrafico(){
     const labels = Object.keys(vendasPorMes).sort();
     const dados = labels.map(l => vendasPorMes[l]);
     
-    graficoInstance = new Chart(grafico, {
+    graficoInstance = new Chart(document.getElementById('grafico'), {
         type: "line",
         data: {
             labels: labels,
@@ -1167,65 +1617,23 @@ function atualizarGrafico(){
     });
 }
 
-/* ===== WHATSAPP ===== */
-function toggleWhatsappMenu(){
-    const menu = document.getElementById('whatsappMenu');
-    menu.classList.toggle('show');
-    if(menu.classList.contains('show')){
-        document.getElementById('whatsappInput').value = whatsappNumber;
-        document.getElementById('whatsappInput').focus();
-    }
-}
-
-function abrirWhatsapp(){
-    const numero = document.getElementById('whatsappInput').value.trim();
-    if(!numero){
-        alert("Por favor, digite um número de WhatsApp válido");
-        return;
-    }
-    const url = `https://wa.me/${numero}?text=Olá! Gostaria de mais informações sobre os produtos.`;
-    window.open(url, '_blank');
-}
-
-function salvarWhatsapp(){
-    const numero = document.getElementById('whatsappNumber').value.trim();
-    if(!numero){
-        alert("Por favor, digite um número válido");
-        return;
-    }
-    whatsappNumber = numero;
-    localStorage.setItem('whatsappNumber', numero);
-    document.getElementById('whatsappStatus').innerHTML = `✅ Número salvo: <strong>${numero}</strong>`;
-    document.getElementById('whatsappNumber').value = '';
-    atualizarWhatsappDisplay();
-    setTimeout(() => {
-        document.getElementById('whatsappStatus').innerHTML = '';
-    }, 3000);
-}
-
-function atualizarWhatsappDisplay(){
-    if(whatsappNumber){
-        document.getElementById('whatsappNumberDisplay').textContent = `📱 ${whatsappNumber}`;
-    }
-}
-
 /* ===== RESTANTE DAS FUNÇÕES ===== */
 function salvarProduto(){
- const precoStr = pPreco.value.replace(',', '.');
+ const precoStr = document.getElementById('pPreco').value.replace(',', '.');
  const precoFormatado = parseFloat(precoStr);
- if(!pDesc.value || isNaN(precoFormatado)) return alert("Preencha descrição e preço corretamente!");
- if(!pCategoria.value) return alert("Selecione uma categoria!");
+ if(!document.getElementById('pDesc').value || isNaN(precoFormatado)) return alert("Preencha descrição e preço corretamente!");
+ if(!document.getElementById('pCategoria').value) return alert("Selecione uma categoria!");
  if(editandoIndice === -1){
-    const existe = produtos.find(p => p.desc === pDesc.value || (pEAN.value && p.ean === pEAN.value));
+    const existe = produtos.find(p => p.desc === document.getElementById('pDesc').value || (document.getElementById('pEAN').value && p.ean === document.getElementById('pEAN').value));
     if(existe && !confirm("Já existe um produto com este nome ou EAN. Deseja cadastrar mesmo assim?")) return;
  }
  const timestamp = new Date().toLocaleString('pt-BR');
  const acao = (img) => {
     if(editandoIndice >= 0){
-        produtos[editandoIndice] = {...produtos[editandoIndice], desc:pDesc.value, preco:precoFormatado, ean:pEAN.value, categoria:pCategoria.value, img:img||produtos[editandoIndice].img, ultimaEdicao:timestamp};
+        produtos[editandoIndice] = {...produtos[editandoIndice], desc:document.getElementById('pDesc').value, preco:precoFormatado, ean:document.getElementById('pEAN').value, categoria:document.getElementById('pCategoria').value, img:img||produtos[editandoIndice].img, ultimaEdicao:timestamp};
         editandoIndice = -1;
     } else {
-        produtos.push({desc:pDesc.value, preco:precoFormatado, ean:pEAN.value, categoria:pCategoria.value, img:img, criadoEm:timestamp, ultimaEdicao:timestamp});
+        produtos.push({desc:document.getElementById('pDesc').value, preco:precoFormatado, ean:document.getElementById('pEAN').value, categoria:document.getElementById('pCategoria').value, img:img, criadoEm:timestamp, ultimaEdicao:timestamp});
         if(window.incomepletoEmEdicao !== undefined){
             produtosIncompletos.splice(window.incomepletoEmEdicao, 1);
             localStorage.setItem("produtosIncompletos", JSON.stringify(produtosIncompletos));
@@ -1233,27 +1641,28 @@ function salvarProduto(){
         }
     }
     localStorage.setItem("produtos",JSON.stringify(produtos));
-    pDesc.value=pPreco.value=pEAN.value=""; pImg.value=""; pCategoria.value="";
+    document.getElementById('pDesc').value=document.getElementById('pPreco').value=document.getElementById('pEAN').value=""; document.getElementById('pImg').value=""; document.getElementById('pCategoria').value="";
     atualizarAdmin(); renderCatalogo();
     
     // Enviar para API
     criarProdutoAPI({
-      name: pDesc.value,
-      description: pDesc.value,
+      name: document.getElementById('pDesc').value,
+      description: document.getElementById('pDesc').value,
       price: precoFormatado,
       category_id: null,
       image_url: img,
       stock: 10
     });
  };
- if(pImg.files[0]){
+ if(document.getElementById('pImg').files[0]){
     const r=new FileReader();
     r.onload=()=>acao(r.result);
-    r.readAsDataURL(pImg.files[0]);
+    r.readAsDataURL(document.getElementById('pImg').files[0]);
  } else acao();
 }
 
 function atualizarAdmin(){
+ const listaAdmin = document.getElementById('listaAdmin');
  listaAdmin.innerHTML="";
  produtos.forEach((p,i)=>{
   listaAdmin.innerHTML+=`
@@ -1275,7 +1684,10 @@ function atualizarAdmin(){
 
 function editarProduto(i){
  const p=produtos[i];
- pDesc.value=p.desc; pPreco.value=p.preco; pEAN.value=p.ean; pCategoria.value=p.categoria;
+ document.getElementById('pDesc').value=p.desc; 
+ document.getElementById('pPreco').value=p.preco; 
+ document.getElementById('pEAN').value=p.ean; 
+ document.getElementById('pCategoria').value=p.categoria;
  editandoIndice = i;
  window.scrollTo(0,0);
 }
@@ -1289,79 +1701,38 @@ function excluirProduto(i){
 }
 
 const c=document.getElementById("assinatura"),ctx=c.getContext("2d");
-let d=false;
-c.onmousedown=()=>{d=true;ctx.beginPath()};
-c.onmouseup=()=>d=false;
-c.onmousemove=e=>{if(d){ctx.lineTo(e.offsetX,e.offsetY);ctx.stroke()}};
+let desenhando=false;
+c.addEventListener("mousedown",()=>desenhando=true);
+c.addEventListener("mouseup",()=>desenhando=false);
+c.addEventListener("mousemove",(e)=>{
+ if(!desenhando)return;
+ const rect=c.getBoundingClientRect();
+ ctx.fillStyle="#000";
+ ctx.beginPath();
+ ctx.arc(e.clientX-rect.left,e.clientY-rect.top,2,0,Math.PI*2);
+ ctx.fill();
+});
+
 function limparAssinatura(){
- const s=prompt("Digite sua senha:");
- if(!s||usuarios[usuarioAtual.nome].senha!==s)return alert("Senha inválida");
  ctx.clearRect(0,0,c.width,c.height);
 }
 
-function abrirAdmin(){
- const s=prompt("Digite sua senha:");
- if(!s||usuarios[usuarioAtual.nome].senha!==s)return alert("Senha inválida");
- catalogo.classList.add("hide");admin.classList.remove("hide");
- atualizarAdmin();
- atualizarListaCategorias();
- document.getElementById('whatsappNumber').value = whatsappNumber;
- atualizarWhatsappDisplay();
-}
-function voltarCatalogo(){ admin.classList.add("hide");catalogo.classList.remove("hide"); }
-function criarUsuario(){
- let u=JSON.parse(localStorage.getItem("usuarios"));
- if(u[novoUser.value])return alert("Usuário já existe");
- u[novoUser.value]={senha:novaSenha.value,nivel:nivelUser.value};
- localStorage.setItem("usuarios",JSON.stringify(u));
- alert("Usuário criado!");
- novoUser.value=novaSenha.value="";
-}
-function logout(){ sessionStorage.removeItem("sessaoAtual"); location.reload(); }
-function toggleTheme(){ document.body.classList.toggle("dark"); }
-function limparHistorico(){
- const s=prompt("Digite sua senha:");
- if(!s||usuarios[usuarioAtual.nome].senha!==s)return alert("Senha inválida");
- pedidos=[];localStorage.removeItem("pedidos");
- atualizarHistorico();
+function toggleTheme(){
+ document.body.classList.toggle("dark");
+ localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
 }
 
-// Funções de exportação
-function exportarPDF(i){
-    const p = pedidos[i];
-    const doc = new jsPDF();
-    doc.text(`Pedido #${i+1}`, 10, 10);
-    doc.text(`Data: ${p.data}`, 10, 20);
-    doc.text(`Total: R$ ${p.total}`, 10, 30);
-    doc.text(`Pagamento: ${p.pagamento}`, 10, 40);
-    doc.autoTable({
-        head: [['Produto', 'Qtd', 'Preço', 'Subtotal']],
-        body: Object.keys(p.itens).map(idx => {
-            const item = p.itens[idx];
-            return [item.desc, item.q, `R$ ${item.preco.toFixed(2)}`, `R$ ${(item.preco * item.q).toFixed(2)}`];
-        })
-    });
-    doc.save(`pedido_${i+1}.pdf`);
+// Aplicar tema salvo
+if(localStorage.getItem("theme") === "dark"){
+ document.body.classList.add("dark");
 }
 
-function exportarExcel(i){
-    const p = pedidos[i];
-    const ws = XLSX.utils.aoa_to_sheet([
-        ['Pedido', `#${i+1}`],
-        ['Data', p.data],
-        ['Total', `R$ ${p.total}`],
-        ['Pagamento', p.pagamento],
-        [],
-        ['Produto', 'Qtd', 'Preço', 'Subtotal'],
-        ...Object.keys(p.itens).map(idx => {
-            const item = p.itens[idx];
-            return [item.desc, item.q, `R$ ${item.preco.toFixed(2)}`, `R$ ${(item.preco * item.q).toFixed(2)}`];
-        })
-    ]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Pedido");
-    XLSX.writeFile(wb, `pedido_${i+1}.xlsx`);
-}
+// Inicializar
+atualizarListaUsuarios();
+atualizarListaCategorias();
+atualizarListaFormasPagamento();
+atualizarListaContatos();
+atualizarListaWhatsapp();
 </script>
 
 </body>
