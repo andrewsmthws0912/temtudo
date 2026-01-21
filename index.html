@@ -888,10 +888,24 @@ function add(i,q){
 }
 
 function calcularTotal(){
- let t=0;
- for(let k in carrinho)t+=carrinho[k].q*carrinho[k].preco;
- total.innerText=t.toFixed(2);
+    let t = 0;
+    for(let k in carrinho) {
+        const item = carrinho[k];
+        // Garante que o preço seja tratado como número, mesmo se vier com vírgula
+        const preco = typeof item.preco === 'string' ? parseFloat(item.preco.replace(',', '.')) : item.preco;
+        const qtd = parseFloat(item.q);
+        
+        if (!isNaN(preco) && !isNaN(qtd)) {
+            t += qtd * preco;
+        }
+    }
+    // Atualiza o elemento visual na tela
+    const totalElement = document.getElementById('total');
+    if (totalElement) {
+        totalElement.innerText = t.toFixed(2);
+    }
 }
+
 
 /* ===== EXPORTAÇÃO PDF ===== */
 function exportarPDF(idx){
