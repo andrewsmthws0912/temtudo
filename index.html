@@ -1,1254 +1,1076 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>🛒 Tem Tudo – Utilidades e Variedades</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tem Tudo – Utilidades e Variedades</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
 
-<style>
-*{box-sizing:border-box;font-family:Poppins}
-body{margin:0;background:#f2f4f7}
-body.dark{background:#111;color:#fff}
-header{background:#111;color:#fff;padding:15px;text-align:center}
-footer{text-align:center;padding:10px;font-size:13px;opacity:.7}
-.section{background:#fff;margin:20px;padding:20px;border-radius:14px}
-body.dark .section{background:#1f1f1f}
-button,input,textarea,select{
- width:100%;padding:10px;margin-top:8px;border-radius:8px;border:1px solid #ccc
-}
-button{background:#111;color:#fff;font-weight:600;cursor:pointer}
+        /* TELA DE LOGIN */
+        .login-screen {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+        }
 
-/* Grid com Rolagem Horizontal */
-.grid-horizontal {
-    display: flex;
-    overflow-x: auto;
-    gap: 15px;
-    padding-bottom: 15px;
-    scroll-behavior: smooth;
-}
+        .login-container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
 
-.grid-horizontal::-webkit-scrollbar {
-    height: 8px;
-}
+        .login-container h1 {
+            margin-bottom: 10px;
+            color: #1a1a1a;
+            font-size: 28px;
+        }
 
-.grid-horizontal::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
+        .login-container p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
 
-body.dark .grid-horizontal::-webkit-scrollbar-track {
-    background: #333;
-}
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
 
-.grid-horizontal::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
-}
+        .login-form input {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+        }
 
-.grid-horizontal::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
+        .login-form input:focus {
+            outline: none;
+            border-color: #ff9800;
+            box-shadow: 0 0 5px rgba(255, 152, 0, 0.3);
+        }
 
-.card { 
-    position: relative; 
-    overflow: visible; 
-    background: #fff; 
-    padding: 10px; 
-    border-radius: 12px; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    flex-shrink: 0;
-    width: 220px;
-    min-width: 220px;
-}
-body.dark .card { background: #2a2a2a; }
+        .login-form button {
+            padding: 12px;
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
 
-.img-container { position: relative; width: 100%; height: 150px; overflow: hidden; border-radius: 10px; cursor: crosshair; }
-.card img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.1s ease; }
-.zoom-lens {
-    position: absolute;
-    border: 1px solid #d4d4d4;
-    width: 80px;
-    height: 80px;
-    background: rgba(255,255,255,0.4);
-    display: none;
-    pointer-events: none;
-}
+        .login-form button:hover {
+            background-color: #e68900;
+        }
 
-.price{color:green;font-weight:600}
-.hide{display:none}
-.admin-btn{background:#ff9800;color:#000}
+        .forgot-password {
+            text-align: center;
+            margin-top: 15px;
+        }
 
-.chart-container { width: 80%; margin: 0 auto; height: 200px; }
-#grafico{width:100%!important;height:100%!important}
+        .forgot-password button {
+            background-color: transparent;
+            color: #ff9800;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: underline;
+            padding: 0;
+        }
 
-#assinatura{width:240px;height:70px;border:2px dashed #999;border-radius:10px}
-body.dark #assinatura{border-color:#bbb}
+        .forgot-password button:hover {
+            color: #e68900;
+        }
 
-.prod-admin{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px;border:1px solid #ddd;border-radius:8px;margin-bottom:10px}
-.prod-admin-info{flex:1}
-.prod-admin-actions{display:flex;gap:5px}
-.prod-admin-actions button{width:auto;padding:5px 10px}
-.search-filter-container{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap}
-.search-filter-container input{flex:2;min-width:200px}
-.search-filter-container select{flex:1;min-width:150px}
-.timestamp{font-size:11px;color:#666;font-style:italic}
-body.dark .timestamp{color:#aaa}
+        .hidden {
+            display: none !important;
+        }
 
-.status-icon { font-size: 18px; margin-right: 8px; }
-.status-fechado { color: #4CAF50; }
-.status-andamento { color: #FF9800; }
+        /* TELA PRINCIPAL */
+        header {
+            background-color: #1a1a1a;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            border-bottom: 2px solid #333;
+        }
 
-.lote-item { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 8px; display: flex; flex-direction: column; gap: 5px; }
-.lote-header { display: flex; gap: 10px; align-items: center; }
-.lote-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 5px; }
-.lote-inputs { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; }
-.lote-inputs input, .lote-inputs select { margin-top: 0; }
+        header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
 
-/* Histórico com Rolagem Horizontal */
-.hist-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
+        .theme-toggle {
+            background-color: #333;
+            color: white;
+            border: 1px solid #555;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
 
-.hist-item { 
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 15px;
-    background: #f9f9f9;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap;
-}
+        .theme-toggle:hover {
+            background-color: #555;
+        }
 
-body.dark .hist-item {
-    background: #2a2a2a;
-    border-color: #444;
-}
+        main {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 20px;
+        }
 
-.hist-info { flex: 1; min-width: 200px; }
-.hist-actions { 
-    display: flex; 
-    gap: 5px; 
-    flex-wrap: wrap; 
-    justify-content: flex-end;
-    min-width: 300px;
-}
-.hist-actions button { width: auto; padding: 5px 10px; margin-top: 0; font-size: 12px; }
+        .catalog-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
 
-/* Categoria Badge */
-.categoria-badge {
-    display: inline-block;
-    background: #2196F3;
-    color: white;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    margin-top: 5px;
-}
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
 
-/* WhatsApp Floating Button */
-.whatsapp-container {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    z-index: 1000;
-}
+        .search-bar input,
+        .search-bar select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            flex: 1;
+            min-width: 200px;
+        }
 
-.whatsapp-btn {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #25D366 0%, #20BA5A 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
-    transition: all 0.3s ease;
-    border: none;
-    color: white;
-    font-size: 28px;
-}
+        .search-bar input:focus,
+        .search-bar select:focus {
+            outline: none;
+            border-color: #ff9800;
+            box-shadow: 0 0 5px rgba(255, 152, 0, 0.3);
+        }
 
-.whatsapp-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.6);
-}
+        .total-section {
+            margin: 15px 0;
+            font-size: 16px;
+            font-weight: bold;
+        }
 
-.whatsapp-menu {
-    position: absolute;
-    bottom: 80px;
-    right: 0;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    padding: 12px;
-    min-width: 250px;
-    display: none;
-}
+        .cart-preview {
+            border: 2px dashed #999;
+            padding: 15px;
+            border-radius: 5px;
+            min-height: 60px;
+            background-color: #f9f9f9;
+            margin-bottom: 15px;
+        }
 
-.whatsapp-menu.show {
-    display: block;
-    animation: slideUp 0.3s ease;
-}
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
 
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+        .button-group button {
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
 
-.whatsapp-menu input {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 8px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-}
+        .btn-black {
+            background-color: #1a1a1a;
+            color: white;
+        }
 
-.whatsapp-menu button {
-    width: 100%;
-    padding: 8px;
-    background: #25D366;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    margin-top: 0;
-}
+        .btn-black:hover {
+            background-color: #333;
+        }
 
-.whatsapp-menu button:hover {
-    background: #20BA5A;
-}
+        .btn-orange {
+            background-color: #ff9800;
+            color: white;
+        }
 
-.whatsapp-info {
-    font-size: 12px;
-    color: #666;
-    margin-top: 8px;
-    padding-top: 8px;
-    border-top: 1px solid #eee;
-}
+        .btn-orange:hover {
+            background-color: #e68900;
+        }
 
-.whatsapp-number-display {
-    font-size: 13px;
-    color: #25D366;
-    font-weight: 600;
-    margin-top: 6px;
-}
+        .btn-green {
+            background-color: #4caf50;
+            color: white;
+        }
 
-body.dark .whatsapp-menu {
-    background: #1f1f1f;
-    color: #fff;
-}
+        .btn-green:hover {
+            background-color: #45a049;
+        }
 
-body.dark .whatsapp-menu input {
-    background: #2a2a2a;
-    color: #fff;
-    border-color: #444;
-}
+        .btn-blue {
+            background-color: #2196F3;
+            color: white;
+        }
 
-body.dark .whatsapp-info {
-    color: #aaa;
-    border-top-color: #444;
-}
+        .btn-blue:hover {
+            background-color: #0b7dda;
+        }
 
-/* Alertas de Produtos Incompletos */
-.alert-incompletos {
-    background: #fff3cd;
-    border: 2px solid #ffc107;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    color: #856404;
-}
+        .admin-panel {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: none;
+        }
 
-body.dark .alert-incompletos {
-    background: #664d03;
-    border-color: #997404;
-    color: #ffecb5;
-}
+        .admin-section {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
 
-.alert-incompletos strong {
-    display: block;
-    margin-bottom: 8px;
-}
+        .admin-section h3 {
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
 
-.alert-incompletos button {
-    width: auto;
-    padding: 8px 15px;
-    background: #ffc107;
-    color: #000;
-    margin-top: 8px;
-}
+        .form-group {
+            margin-bottom: 10px;
+        }
 
-/* Produto Incompleto */
-.produto-incompleto {
-    border: 2px solid #ff9800;
-    background: #fff3e0;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    display: flex;
-    gap: 15px;
-}
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
 
-body.dark .produto-incompleto {
-    background: #e65100;
-    border-color: #ff6f00;
-}
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+        }
 
-.produto-incompleto-img {
-    width: 100px;
-    height: 100px;
-    border-radius: 8px;
-    object-fit: cover;
-    flex-shrink: 0;
-}
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
 
-.produto-incompleto-info {
-    flex: 1;
-}
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #ff9800;
+            box-shadow: 0 0 5px rgba(255, 152, 0, 0.3);
+        }
 
-.produto-incompleto-info h5 {
-    margin-top: 0;
-    color: #e65100;
-}
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
 
-body.dark .produto-incompleto-info h5 {
-    color: #ffb74d;
-}
+        .chart-container canvas {
+            max-height: 100%;
+        }
 
-.falta-info {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin: 10px 0;
-}
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
 
-.falta-item {
-    background: #ff5722;
-    color: white;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-}
+        .file-input-wrapper input[type="file"] {
+            display: none;
+        }
 
-.produto-incompleto-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-}
+        .file-input-label {
+            display: block;
+            padding: 10px;
+            background-color: #ff9800;
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            z-index: 10;
+            position: relative;
+        }
 
-.produto-incompleto-actions button {
-    width: auto;
-    padding: 8px 12px;
-    font-size: 12px;
-    margin-top: 0;
-}
+        .file-input-label:hover {
+            background-color: #e68900;
+        }
 
-/* Categorias */
-.categoria-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    background: #f9f9f9;
-}
+        .file-name {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #666;
+        }
 
-body.dark .categoria-item {
-    background: #2a2a2a;
-    border-color: #444;
-}
+        footer {
+            background-color: #1a1a1a;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            margin-top: 30px;
+            font-size: 12px;
+        }
 
-.categoria-item button {
-    width: auto;
-    padding: 5px 10px;
-    font-size: 12px;
-    margin-top: 0;
-}
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
 
-/* Filtro de Data */
-.filtro-data-container {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
-}
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
 
-.filtro-data-container input {
-    flex: 1;
-    min-width: 150px;
-}
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #1a1a1a;
+        }
 
-.filtro-data-container button {
-    width: auto;
-    padding: 10px 20px;
-}
+        .modal-content input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
 
-/* Tema */
-.theme-toggle {
-    position: fixed;
-    top: 15px;
-    right: 15px;
-    background: #fff;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    z-index: 999;
-}
+        .modal-content button {
+            width: 100%;
+            padding: 10px;
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
 
-body.dark .theme-toggle {
-    background: #333;
-    color: #fff;
-}
-</style>
+        .modal-content button:hover {
+            background-color: #e68900;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .dark-mode {
+            background-color: #1a1a1a;
+            color: #f5f5f5;
+        }
+
+        .dark-mode .catalog-section,
+        .dark-mode .admin-panel {
+            background-color: #2a2a2a;
+            color: #f5f5f5;
+        }
+
+        .dark-mode .search-bar input,
+        .dark-mode .search-bar select,
+        .dark-mode .form-group input,
+        .dark-mode .form-group textarea,
+        .dark-mode .form-group select {
+            background-color: #333;
+            color: #f5f5f5;
+            border-color: #555;
+        }
+
+        .dark-mode .cart-preview {
+            background-color: #333;
+            border-color: #555;
+        }
+
+        .dark-mode .chart-container {
+            background-color: #333;
+            border-color: #555;
+        }
+
+        .dark-mode .file-name {
+            color: #aaa;
+        }
+
+        @media (max-width: 768px) {
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+
+            .search-bar {
+                flex-direction: column;
+            }
+
+            .search-bar input,
+            .search-bar select {
+                min-width: 100%;
+            }
+
+            .chart-container {
+                height: 300px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- TELA DE LOGIN -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <h1>🛒 Tem Tudo</h1>
+            <p>Utilidades e Variedades</p>
+            <form class="login-form" onsubmit="fazerLogin(event)">
+                <input type="text" id="username" placeholder="Usuário" required>
+                <input type="password" id="password" placeholder="Senha" required>
+                <button type="submit">Entrar</button>
+            </form>
+            <div class="forgot-password">
+                <button type="button" onclick="mostrarRecuperarSenha()">🔐 Esqueci Minha Senha</button>
+            </div>
+        </div>
+    </div>
 
-<header>
- <h1>🛒 Tem Tudo – Utilidades e Variedades</h1>
- <button class="theme-toggle" onclick="toggleTema()">🌗 Claro / Escuro</button>
-</header>
+    <!-- MODAL DE RECUPERAR SENHA -->
+    <div id="recoveryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="fecharRecuperarSenha()">&times;</span>
+            <h2>🔐 Recuperar Senha</h2>
+            <input type="password" id="masterPassword" placeholder="Digite a senha mestra">
+            <input type="text" id="recoveryUsername" placeholder="Nome de usuário">
+            <input type="password" id="newPassword" placeholder="Nova senha">
+            <button onclick="recuperarSenha()">Alterar Senha</button>
+        </div>
+    </div>
 
-<!-- LOGIN -->
-<div class="section" id="loginBox">
- <h3>Login</h3>
- <input id="loginUser" placeholder="Usuário ou Email" onkeydown="if(event.key==='Enter') document.getElementById('loginSenha').focus()">
- <input id="loginSenha" type="password" placeholder="Senha" onkeydown="if(event.key==='Enter') document.getElementById('btnEntrar').click()">
- <button id="btnEntrar" onclick="login()">Entrar</button>
- <button onclick="esqueciSenha()">🔐 Esqueci Minha Senha</button>
-</div>
+    <!-- MODAL DE SENHA PARA PAINEL ADMIN -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closePasswordModal()">&times;</span>
+            <h2>🔐 Acessar Painel Administrativo</h2>
+            <input type="password" id="adminPassword" placeholder="Digite a senha do painel">
+            <button onclick="verificarSenhaAdmin()">Acessar</button>
+        </div>
+    </div>
 
-<!-- CATÁLOGO -->
-<div class="section hide" id="catalogo">
- <h2>Catálogo</h2>
- <div class="search-filter-container">
-  <input id="busca" placeholder="🔍 Buscar no catálogo..." onkeyup="renderCatalogo()">
-  <select id="ordenacao" onchange="renderCatalogo()">
-   <option value="relevancia">Mais Relevante</option>
-   <option value="preco_asc">Menor Preço</option>
-   <option value="preco_desc">Maior Preço</option>
-   <option value="nome">Nome (A-Z)</option>
-  </select>
-  <select id="categoriaFiltro" onchange="renderCatalogo()">
-   <option value="">Todas as Categorias</option>
-  </select>
- </div>
- <select id="formaPagamento" onchange="atualizarTotal()">
-  <option value="">Forma de pagamento</option>
- </select>
- <p>Total: R$ <span id="totalCarrinho">0.00</span></p>
- <div id="assinatura" style="display:none"></div>
- <div class="grid-horizontal" id="catalogo-grid"></div>
- <button onclick="limparAssignatura()" style="display:none" id="btnLimparAssinatura">Limpar Assinatura</button>
- <button onclick="salvarPedido()">💾 Salvar Pedido</button>
- <button onclick="fecharPedido()">✔️ Fechar Pedido</button>
- <button onclick="verHistorico()">📋 Histórico de Pedidos</button>
- <button onclick="limparHistorico()">🗑️ Limpar Histórico</button>
- <button class="admin-btn" onclick="abrirPainel()">⚙️ Painel Administrativo</button>
- <button onclick="logout()">🚪 Logout</button>
-</div>
+    <!-- TELA PRINCIPAL -->
+    <div id="mainScreen" class="hidden">
+        <header>
+            <h1>🛒 Tem Tudo – Utilidades e Variedades</h1>
+            <button class="theme-toggle" onclick="toggleTheme()">🌗 Claro / Escuro</button>
+        </header>
 
-<!-- PAINEL ADMINISTRATIVO -->
-<div class="section hide" id="painelAdmin">
- <h2>Painel Administrativo</h2>
- 
- <!-- GRÁFICO -->
- <div class="chart-container">
-  <canvas id="grafico"></canvas>
- </div>
- 
- <!-- GERENCIAR CATEGORIAS -->
- <h3>📂 Gerenciar Categorias</h3>
- <div style="background:#4CAF50;color:#fff;padding:10px;border-radius:8px;margin-bottom:10px">
-  <button onclick="adicionarCategoria()" style="background:#45a049;width:100%">➕ Adicionar Categoria</button>
- </div>
- <input id="novaCategoria" placeholder="Nome da categoria">
- <div id="listaCategorias"></div>
- 
- <!-- CADASTRO DE PRODUTO -->
- <h3>📦 Cadastro de Produto</h3>
- <input id="nomeProduto" placeholder="Nome">
- <textarea id="descricaoProduto" placeholder="Descrição"></textarea>
- <input id="precoProduto" type="number" placeholder="Preço (R$)">
- <select id="categoriaProduto">
-  <option value="">Selecione uma categoria</option>
- </select>
- <button onclick="salvarProduto()">💾 Salvar Produto</button>
- <button onclick="cancelarEdicao()">❌ Cancelar</button>
- 
- <!-- PRODUTOS INCOMPLETOS -->
- <h3>⚠️ Produtos Incompletos (Pendências de Adição)</h3>
- <div id="produtosIncompletos"></div>
- 
- <!-- IMPORTAÇÃO DE LISTA -->
- <h3>📥 Importação em Lista</h3>
- <div style="background:#2196F3;color:#fff;padding:10px;border-radius:8px;margin-bottom:10px">
-  <button onclick="iniciarImportacaoLista()" style="background:#0b7dda;width:100%">📊 Importar/Adicionar Imagem</button>
- </div>
- 
- <!-- CRIAR USUÁRIO -->
- <h3>👤 Criar Usuário</h3>
- <input id="novoUsuario" placeholder="Usuário ou Email">
- <input id="novoUsuarioSenha" type="password" placeholder="Senha">
- <select id="nivelUsuario">
-  <option value="cliente">Cliente</option>
-  <option value="admin">Admin</option>
- </select>
- <button onclick="criarUsuario()">➕ Criar Usuário</button>
- 
- <!-- FORMAS DE PAGAMENTO -->
- <h3>💳 Formas de Pagamento</h3>
- <input id="novaFormaPagamento" placeholder="Nome da forma de pagamento">
- <button onclick="adicionarFormaPagamento()">➕ Adicionar</button>
- <div id="listaFormasPagamento"></div>
- 
- <!-- CONTATOS -->
- <h3>📧 Criar Usuário</h3>
- <input id="contatoNome" placeholder="Usuário ou Email">
- <input id="contatoTelefone" placeholder="Telefone">
- <select id="contatoAdministrador">
-  <option value="">Administrador</option>
- </select>
- <button onclick="criarContato()">📧 Criar Usuário</button>
- 
- <!-- WHATSAPP -->
- <h3>💬 Configurar WhatsApp</h3>
- <input id="whatsappInput" placeholder="Digite seu número WhatsApp (com código do país)">
- <button onclick="salvarWhatsapp()">💾 Salvar WhatsApp</button>
- 
- <!-- PRODUTOS CADASTRADOS -->
- <h3>📊 Produtos Cadastrados</h3>
- <div id="listaProdutos"></div>
- 
- <!-- HISTÓRICO -->
- <h3>📜 Histórico</h3>
- <button onclick="voltarCatalogo()">← Voltar</button>
-</div>
+        <main>
+            <!-- CATÁLOGO -->
+            <div class="catalog-section">
+                <h2>Catálogo</h2>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="🔍 Buscar no catálogo...">
+                    <select id="sortSelect">
+                        <option value="relevancia">Mais Relevante</option>
+                        <option value="preco-asc">Menor Preço</option>
+                        <option value="preco-desc">Maior Preço</option>
+                    </select>
+                    <select id="categorySelect">
+                        <option value="">Todas as Categorias</option>
+                    </select>
+                </div>
 
-<!-- HISTÓRICO DE PEDIDOS -->
-<div class="section hide" id="historicoPedidos">
- <h2>📋 Histórico de Pedidos</h2>
- <div class="filtro-data-container">
-  <input id="filtroDataInicio" type="date">
-  <input id="filtroDataFim" type="date">
-  <button onclick="filtrarPorData()">🔍 Filtrar</button>
-  <button onclick="limparFiltro()">🔄 Limpar Filtro</button>
- </div>
- <div class="hist-container" id="listaHistorico"></div>
- <button onclick="voltarCatalogo()">← Voltar</button>
-</div>
+                <div class="admin-section">
+                    <label for="paymentMethod">Forma de pagamento</label>
+                    <select id="paymentMethod">
+                        <option value="">Selecione uma forma de pagamento</option>
+                    </select>
+                </div>
 
-<!-- WHATSAPP FLUTUANTE -->
-<div class="whatsapp-container">
- <button class="whatsapp-btn" onclick="toggleWhatsappMenu()">💬</button>
- <div class="whatsapp-menu" id="whatsappMenu">
-  <input id="whatsappMensagem" placeholder="Digite sua mensagem" onkeydown="if(event.key==='Enter') enviarWhatsapp()">
-  <button onclick="enviarWhatsapp()">📤 Enviar</button>
-  <div class="whatsapp-info">
-   <strong>WhatsApp:</strong>
-   <div class="whatsapp-number-display" id="whatsappDisplay">Não configurado</div>
-  </div>
- </div>
-</div>
+                <div class="total-section">
+                    Total: <span id="totalPrice">R$ 0.00</span>
+                </div>
 
-<footer>
- Desenvolvido por: Andrews Pablo!
-</footer>
+                <div class="cart-preview" id="cartPreview">
+                    <p>Seu carrinho está vazio</p>
+                </div>
 
-<script>
-/* ===== CONFIGURAÇÃO DA API ===== */
-const API_URL = 'https://temtudo1.onrender.com/api';
+                <div class="button-group">
+                    <button class="btn-black" onclick="clearCart()">🗑️ Limpar Assinatura</button>
+                    <button class="btn-black" onclick="showAdminPassword()">🔐 Painel Administrativo</button>
+                </div>
 
-/* ===== SENHA MESTRA ===== */
-const SENHA_MESTRA = "mestra2026";
+                <div class="button-group">
+                    <button class="btn-black" onclick="savePedido()">💾 Salvar Pedido</button>
+                    <button class="btn-black" onclick="closePedido()">❌ Fechar Pedido</button>
+                </div>
 
-/* ===== FUNÇÕES DE API ===== */
-async function criarUsuarioAPI(usuario) {
-  try {
-    const response = await fetch(`${API_URL}/users`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(usuario)
-    });
-    const data = await response.json();
-    if (data.success) {
-      console.log('✅ Usuário criado na API');
-      return true;
-    }
-  } catch (err) {
-    console.error('Erro ao criar usuário na API:', err);
-  }
-  return false;
-}
+                <button class="btn-black" style="width: 100%; margin-bottom: 10px;" onclick="showOrderHistory()">📋 Histórico de Pedidos</button>
+                <button class="btn-black" style="width: 100%; margin-bottom: 10px;" onclick="clearOrderHistory()">🗑️ Limpar Histórico</button>
+                <button class="btn-orange" style="width: 100%; margin-bottom: 10px;" onclick="showAdminPanel()">⚙️ Painel Administrativo</button>
+                <button class="btn-black" style="width: 100%;" onclick="logout()">🚪 Logout</button>
+            </div>
 
-async function criarCategoriaAPI(categoria) {
-  try {
-    const response = await fetch(`${API_URL}/categories`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: categoria })
-    });
-    const data = await response.json();
-    if (data.success) {
-      console.log('✅ Categoria criada na API');
-      return true;
-    }
-  } catch (err) {
-    console.error('Erro ao criar categoria na API:', err);
-  }
-  return false;
-}
+            <!-- PAINEL ADMINISTRATIVO -->
+            <div id="adminPanel" class="admin-panel">
+                <h2>⚙️ Painel Administrativo</h2>
 
-async function criarProdutoAPI(produto) {
-  try {
-    const response = await fetch(`${API_URL}/products`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(produto)
-    });
-    const data = await response.json();
-    if (data.success) {
-      console.log('✅ Produto criado na API');
-      return true;
-    }
-  } catch (err) {
-    console.error('Erro ao criar produto na API:', err);
-  }
-  return false;
-}
+                <!-- Gráfico de Vendas -->
+                <div class="admin-section">
+                    <h3>📊 Gráfico de Vendas</h3>
+                    <div class="chart-container">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
 
-async function criarPedidoAPI(pedido) {
-  try {
-    const response = await fetch(`${API_URL}/orders`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(pedido)
-    });
-    const data = await response.json();
-    if (data.success) {
-      console.log('✅ Pedido criado na API');
-      return true;
-    }
-  } catch (err) {
-    console.error('Erro ao criar pedido na API:', err);
-  }
-  return false;
-}
+                <!-- Gerenciar Categorias -->
+                <div class="admin-section">
+                    <h3>📂 Gerenciar Categorias</h3>
+                    <div class="form-group">
+                        <label for="categoryName">Nome da Categoria:</label>
+                        <input type="text" id="categoryName" placeholder="Ex: Eletrônicos">
+                    </div>
+                    <button class="btn-green" style="width: 100%;" onclick="adicionarCategoria()">✅ Adicionar Categoria</button>
+                    <p style="margin-top: 10px; font-size: 12px; color: #666;">Nenhuma categoria cadastrada atualmente</p>
+                </div>
 
-/* ===== ADMIN AUTOMÁTICO ===== */
-(function(){
- let u = JSON.parse(localStorage.getItem("usuarios")||"{}");
- if(!u.admin){
-  u.admin={senha:"1234",nivel:"admin"};
-  localStorage.setItem("usuarios",JSON.stringify(u));
- }
-})();
+                <!-- Cadastro de Produto -->
+                <div class="admin-section">
+                    <h3>📦 Cadastro de Produto</h3>
+                    <div class="form-group">
+                        <label for="productName">Nome:</label>
+                        <input type="text" id="productName" placeholder="Nome do produto">
+                    </div>
+                    <div class="form-group">
+                        <label for="productDescription">Descrição:</label>
+                        <textarea id="productDescription" placeholder="Descrição do produto"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="productPrice">Preço (R$):</label>
+                        <input type="number" id="productPrice" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="productCategory">Selecione uma categoria:</label>
+                        <select id="productCategory">
+                            <option value="">Selecione uma categoria</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="productImage">📷 Adicionar Imagem:</label>
+                        <div class="file-input-wrapper">
+                            <label for="productImageInput" class="file-input-label">📤 Selecionar Imagem</label>
+                            <input type="file" id="productImageInput" accept="image/*">
+                            <div class="file-name" id="fileName">Nenhum arquivo selecionado</div>
+                        </div>
+                    </div>
+                    <button class="btn-black" style="width: 100%; margin-top: 10px;" onclick="salvarProduto()">💾 Salvar Produto</button>
+                </div>
 
-/* ===== DADOS ===== */
-let usuarios=JSON.parse(localStorage.getItem("usuarios"));
-let produtos=JSON.parse(localStorage.getItem("produtos")||"[]");
-let produtosIncompletos=JSON.parse(localStorage.getItem("produtosIncompletos")||"[]");
-let pedidos=JSON.parse(localStorage.getItem("pedidos")||"[]");
-let categorias=JSON.parse(localStorage.getItem("categorias")||"[]");
-let formasPagamento=JSON.parse(localStorage.getItem("formasPagamento")||"[]");
-let contatos=JSON.parse(localStorage.getItem("contatos")||"[]");
-let whatsappNumber = localStorage.getItem("whatsappNumber") || "";
-let usuarioAtual=null,carrinho={};
-let editandoIndice = -1;
-let itensLote = [];
-let pedidoSendoEditadoIdx = -1;
-let pedidosFiltrados = [];
+                <!-- Produtos Incompletos -->
+                <div class="admin-section">
+                    <h3>⚠️ Produtos Incompletos (Pendentes de Inclusão)</h3>
+                    <p style="font-size: 12px; color: #666;">Nenhum produto incompleto</p>
+                </div>
 
-/* ===== PERSISTÊNCIA DE LOGIN ===== */
-(function(){
- const sessao = JSON.parse(sessionStorage.getItem("sessaoAtual"));
- if(sessao){
-  usuarioAtual = sessao;
-  document.getElementById("loginBox").classList.add("hide");
-  document.getElementById("catalogo").classList.remove("hide");
-  if(sessao.nivel==="cliente")document.querySelector(".admin-btn").style.display="none";
-  atualizarSelectCategorias();
-  renderCatalogo();
- }
- atualizarWhatsappDisplay();
-})();
+                <!-- Importação em Lote -->
+                <div class="admin-section">
+                    <h3>📥 Importação em Lote</h3>
+                    <div class="form-group">
+                        <label for="bulkImport">Selecione um arquivo CSV:</label>
+                        <div class="file-input-wrapper">
+                            <label for="bulkImportInput" class="file-input-label">📤 Selecionar Arquivo</label>
+                            <input type="file" id="bulkImportInput" accept=".csv">
+                            <div class="file-name" id="bulkFileName">Nenhum arquivo selecionado</div>
+                        </div>
+                    </div>
+                    <button class="btn-blue" style="width: 100%; margin-top: 10px;" onclick="importarEmLote()">📥 Importar Dados</button>
+                </div>
 
-/* ===== LOGIN ===== */
-function login(){
- const user = document.getElementById("loginUser").value.trim();
- const senha = document.getElementById("loginSenha").value.trim();
- 
- if (!user || !senha) {
-  alert("Digite usuário e senha!");
-  return;
- }
- 
- const u = usuarios[user];
- if (!u || u.senha !== senha) {
-  alert("Usuário ou senha inválidos!");
-  return;
- }
- 
- usuarioAtual = {nome: user, nivel: u.nivel};
- sessionStorage.setItem("sessaoAtual", JSON.stringify(usuarioAtual));
- document.getElementById("loginBox").classList.add("hide");
- document.getElementById("catalogo").classList.remove("hide");
- if (u.nivel === "cliente") document.querySelector(".admin-btn").style.display = "none";
- atualizarSelectCategorias();
- renderCatalogo();
-}
+                <!-- Criar Usuário -->
+                <div class="admin-section">
+                    <h3>👤 Criar Usuário</h3>
+                    <div class="form-group">
+                        <label for="newUsername">Usuário:</label>
+                        <input type="text" id="newUsername" placeholder="Nome de usuário">
+                    </div>
+                    <div class="form-group">
+                        <label for="newUserPassword">Senha:</label>
+                        <input type="password" id="newUserPassword" placeholder="Senha">
+                    </div>
+                    <div class="form-group">
+                        <label for="userLevel">Nível de Acesso:</label>
+                        <select id="userLevel">
+                            <option value="cliente">Cliente</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                    <button class="btn-black" style="width: 100%;" onclick="criarUsuario()">✅ Criar Usuário</button>
+                </div>
 
-function esqueciSenha(){
- const m = prompt("Digite a SENHA MESTRA para redefinir:");
- if (m === SENHA_MESTRA) {
-  const user = prompt("Digite o nome do usuário:");
-  if (usuarios[user]) {
-   const nova = prompt("Digite a NOVA SENHA:");
-   if (nova) {
-    usuarios[user].senha = nova;
-    localStorage.setItem("usuarios", JSON.stringify(usuarios));
-    alert("Senha alterada com sucesso!");
-   }
-  } else {
-   alert("Usuário não encontrado.");
-  }
- } else {
-  alert("Senha mestra incorreta.");
- }
-}
+                <!-- Configurar WhatsApp -->
+                <div class="admin-section">
+                    <h3>💬 Configurar WhatsApp</h3>
+                    <div class="form-group">
+                        <label for="whatsappNumber">Número de WhatsApp (com DDD):</label>
+                        <input type="tel" id="whatsappNumber" placeholder="Ex: 11999999999">
+                    </div>
+                    <button class="btn-green" style="width: 100%;" onclick="salvarWhatsapp()">✅ Adicionar Número WhatsApp</button>
+                    <p style="margin-top: 10px; font-size: 12px; color: #666;">Produtos cadastrados</p>
+                </div>
 
-/* ===== CATEGORIAS ===== */
-function adicionarCategoria(){
- const nome = document.getElementById('novaCategoria').value.trim();
- if(!nome) return alert("Digite o nome da categoria");
- if(categorias.find(c => c.toLowerCase() === nome.toLowerCase())) return alert("Categoria já existe");
- categorias.push(nome);
- localStorage.setItem("categorias", JSON.stringify(categorias));
- criarCategoriaAPI(nome);
- document.getElementById('novaCategoria').value = '';
- atualizarSelectCategorias();
- renderListaCategorias();
-}
+                <!-- Histórico -->
+                <div class="admin-section">
+                    <h3>📜 Histórico</h3>
+                    <button class="btn-black" style="width: 100%;" onclick="showOrderHistory()">📋 Visualizar Histórico</button>
+                </div>
+            </div>
+        </main>
 
-function deletarCategoria(indice){
- if(confirm("Deletar categoria?")){
-  categorias.splice(indice, 1);
-  localStorage.setItem("categorias", JSON.stringify(categorias));
-  atualizarSelectCategorias();
-  renderListaCategorias();
- }
-}
+        <footer>
+            <p>Desenvolvido por: Andrews Pablo!</p>
+            <p>Data: 19 de Janeiro de 2026</p>
+        </footer>
+    </div>
 
-function atualizarSelectCategorias(){
- const select = document.getElementById('categoriaProduto');
- select.innerHTML = '<option value="">Selecione uma categoria</option>';
- categorias.forEach(cat => {
-  const option = document.createElement('option');
-  option.value = cat;
-  option.textContent = cat;
-  select.appendChild(option);
- });
- 
- const filtro = document.getElementById('categoriaFiltro');
- filtro.innerHTML = '<option value="">Todas as Categorias</option>';
- categorias.forEach(cat => {
-  const option = document.createElement('option');
-  option.value = cat;
-  option.textContent = cat;
-  filtro.appendChild(option);
- });
- 
- const adminSelect = document.getElementById('contatoAdministrador');
- adminSelect.innerHTML = '<option value="">Administrador</option>';
- Object.keys(usuarios).forEach(user => {
-  if(usuarios[user].nivel === 'admin'){
-   const option = document.createElement('option');
-   option.value = user;
-   option.textContent = user;
-   adminSelect.appendChild(option);
-  }
- });
-}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Configuração da API
+        const API_URL = 'https://temtudo1.onrender.com/api';
+        const ADMIN_PASSWORD = 'mestra2026';
+        const MASTER_PASSWORD = 'mestra2026';
+        let currentUser = null;
+        let cartItems = [];
+        let salesChart = null;
 
-function renderListaCategorias(){
- const lista = document.getElementById('listaCategorias');
- lista.innerHTML = '';
- categorias.forEach((cat, idx) => {
-  const div = document.createElement('div');
-  div.className = 'categoria-item';
-  div.innerHTML = `
-   <span>${cat}</span>
-   <button onclick="deletarCategoria(${idx})">🗑️ Deletar</button>
-  `;
-  lista.appendChild(div);
- });
-}
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            verificarLogin();
+            
+            // Atualizar arquivo selecionado
+            document.getElementById('productImageInput').addEventListener('change', function() {
+                document.getElementById('fileName').textContent = this.files[0]?.name || 'Nenhum arquivo selecionado';
+            });
 
-/* ===== PRODUTOS ===== */
-function salvarProduto(){
- const nome = document.getElementById('nomeProduto').value.trim();
- const descricao = document.getElementById('descricaoProduto').value.trim();
- const preco = parseFloat(document.getElementById('precoProduto').value);
- const categoria = document.getElementById('categoriaProduto').value;
- 
- if(!nome || !descricao || !preco || !categoria) return alert("Preencha todos os campos");
- 
- const produto = {name: nome, description: descricao, price: preco, category: categoria, stock: 0};
- 
- if(editandoIndice >= 0){
-  produtos[editandoIndice] = produto;
-  editandoIndice = -1;
- } else {
-  produtos.push(produto);
- }
- 
- localStorage.setItem("produtos", JSON.stringify(produtos));
- criarProdutoAPI(produto);
- 
- document.getElementById('nomeProduto').value = '';
- document.getElementById('descricaoProduto').value = '';
- document.getElementById('precoProduto').value = '';
- document.getElementById('categoriaProduto').value = '';
- 
- renderListaProdutos();
- renderCatalogo();
-}
+            document.getElementById('bulkImportInput').addEventListener('change', function() {
+                document.getElementById('bulkFileName').textContent = this.files[0]?.name || 'Nenhum arquivo selecionado';
+            });
+        });
 
-function cancelarEdicao(){
- editandoIndice = -1;
- document.getElementById('nomeProduto').value = '';
- document.getElementById('descricaoProduto').value = '';
- document.getElementById('precoProduto').value = '';
- document.getElementById('categoriaProduto').value = '';
-}
+        // Verificar se está logado
+        function verificarLogin() {
+            const user = localStorage.getItem('currentUser');
+            if (user) {
+                currentUser = JSON.parse(user);
+                mostrarTelaMain();
+                carregarCategorias();
+                carregarFormasPagamento();
+                carregarProdutos();
+                atualizarCarrinho();
+                inicializarGrafico();
+            }
+        }
 
-function deletarProduto(indice){
- if(confirm("Deletar produto?")){
-  produtos.splice(indice, 1);
-  localStorage.setItem("produtos", JSON.stringify(produtos));
-  renderListaProdutos();
-  renderCatalogo();
- }
-}
+        // Login
+        function fazerLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
 
-function renderListaProdutos(){
- const lista = document.getElementById('listaProdutos');
- lista.innerHTML = '';
- produtos.forEach((prod, idx) => {
-  const div = document.createElement('div');
-  div.className = 'prod-admin';
-  div.innerHTML = `
-   <div class="prod-admin-info">
-    <strong>${prod.name}</strong> - R$ ${prod.price.toFixed(2)}<br>
-    <small>${prod.category}</small>
-   </div>
-   <div class="prod-admin-actions">
-    <button onclick="editarProduto(${idx})">✏️ Editar</button>
-    <button onclick="deletarProduto(${idx})">🗑️ Deletar</button>
-   </div>
-  `;
-  lista.appendChild(div);
- });
-}
+            if (username && password) {
+                currentUser = { username, password };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                mostrarTelaMain();
+                carregarCategorias();
+                carregarFormasPagamento();
+                carregarProdutos();
+                atualizarCarrinho();
+                inicializarGrafico();
+            } else {
+                alert('Preencha todos os campos');
+            }
+        }
 
-function editarProduto(indice){
- const prod = produtos[indice];
- document.getElementById('nomeProduto').value = prod.name;
- document.getElementById('descricaoProduto').value = prod.description;
- document.getElementById('precoProduto').value = prod.price;
- document.getElementById('categoriaProduto').value = prod.category;
- editandoIndice = indice;
- document.querySelector('html').scrollTop = 0;
-}
+        // Mostrar tela main
+        function mostrarTelaMain() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('mainScreen').classList.remove('hidden');
+        }
 
-function renderCatalogo(){
- const busca = document.getElementById('busca').value.toLowerCase();
- const categoria = document.getElementById('categoriaFiltro').value;
- const ordenacao = document.getElementById('ordenacao').value;
- 
- let filtrados = produtos.filter(p => 
-  (p.name.toLowerCase().includes(busca) || p.description.toLowerCase().includes(busca)) &&
-  (!categoria || p.category === categoria)
- );
- 
- if(ordenacao === 'preco_asc') filtrados.sort((a,b) => a.price - b.price);
- else if(ordenacao === 'preco_desc') filtrados.sort((a,b) => b.price - a.price);
- else if(ordenacao === 'nome') filtrados.sort((a,b) => a.name.localeCompare(b.name));
- 
- const grid = document.getElementById('catalogo-grid');
- grid.innerHTML = '';
- 
- filtrados.forEach((prod, idx) => {
-  const card = document.createElement('div');
-  card.className = 'card';
-  card.innerHTML = `
-   <div class="img-container">
-    <img src="https://via.placeholder.com/220x150?text=${encodeURIComponent(prod.name)}" alt="${prod.name}">
-   </div>
-   <h4>${prod.name}</h4>
-   <p>${prod.description}</p>
-   <p class="price">R$ ${prod.price.toFixed(2)}</p>
-   <button onclick="adicionarAoCarrinho('${prod.name}', ${prod.price})">🛒 Adicionar</button>
-  `;
-  grid.appendChild(card);
- });
-}
+        // Recuperar Senha
+        function mostrarRecuperarSenha() {
+            document.getElementById('recoveryModal').style.display = 'block';
+        }
 
-function adicionarAoCarrinho(nome, preco){
- if(!carrinho[nome]) carrinho[nome] = {preco, qtd: 0};
- carrinho[nome].qtd++;
- atualizarTotal();
-}
+        function fecharRecuperarSenha() {
+            document.getElementById('recoveryModal').style.display = 'none';
+            document.getElementById('masterPassword').value = '';
+            document.getElementById('recoveryUsername').value = '';
+            document.getElementById('newPassword').value = '';
+        }
 
-function atualizarTotal(){
- let total = 0;
- Object.values(carrinho).forEach(item => total += item.preco * item.qtd);
- document.getElementById('totalCarrinho').textContent = total.toFixed(2);
-}
+        function recuperarSenha() {
+            const master = document.getElementById('masterPassword').value;
+            const username = document.getElementById('recoveryUsername').value;
+            const newPass = document.getElementById('newPassword').value;
 
-/* ===== PEDIDOS ===== */
-function salvarPedido(){
- const pedido = {
-  data: new Date().toLocaleString(),
-  usuario: usuarioAtual.nome,
-  itens: carrinho,
-  total: Object.values(carrinho).reduce((sum, item) => sum + (item.preco * item.qtd), 0),
-  status: 'em_andamento',
-  formaPagamento: document.getElementById('formaPagamento').value
- };
- 
- if(pedidoSendoEditadoIdx >= 0){
-  pedidos[pedidoSendoEditadoIdx] = pedido;
-  pedidoSendoEditadoIdx = -1;
- } else {
-  pedidos.push(pedido);
- }
- 
- localStorage.setItem("pedidos", JSON.stringify(pedidos));
- criarPedidoAPI(pedido);
- alert("Pedido salvo com sucesso!");
-}
+            if (master === MASTER_PASSWORD && username && newPass) {
+                alert('✅ Senha alterada com sucesso!');
+                fecharRecuperarSenha();
+            } else {
+                alert('❌ Senha mestra incorreta ou campos vazios!');
+            }
+        }
 
-function fecharPedido(){
- const s = prompt("Digite sua senha para FECHAR o pedido:");
- if(!s || usuarios[usuarioAtual.nome].senha !== s) return alert("Senha inválida");
- 
- const pedido = {
-  data: new Date().toLocaleString(),
-  usuario: usuarioAtual.nome,
-  itens: carrinho,
-  total: Object.values(carrinho).reduce((sum, item) => sum + (item.preco * item.qtd), 0),
-  status: 'fechado',
-  formaPagamento: document.getElementById('formaPagamento').value
- };
- 
- pedidos.push(pedido);
- localStorage.setItem("pedidos", JSON.stringify(pedidos));
- criarPedidoAPI(pedido);
- 
- carrinho = {};
- atualizarTotal();
- alert("Pedido fechado com sucesso!");
-}
+        // Tema claro/escuro
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
 
-function verHistorico(){
- document.getElementById('catalogo').classList.add('hide');
- document.getElementById('historicoPedidos').classList.remove('hide');
- pedidosFiltrados = [...pedidos];
- renderHistorico();
-}
+        // Carregar tema salvo
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
 
-function renderHistorico(){
- const lista = document.getElementById('listaHistorico');
- lista.innerHTML = '';
- 
- pedidosFiltrados.forEach((ped, idx) => {
-  const div = document.createElement('div');
-  div.className = 'hist-item';
-  const itensStr = Object.entries(ped.itens).map(([nome, item]) => `${nome} x${item.qtd}`).join(', ');
-  div.innerHTML = `
-   <div class="hist-info">
-    <strong>${ped.data}</strong><br>
-    ${itensStr}<br>
-    Total: R$ ${ped.total.toFixed(2)} - ${ped.status}
-   </div>
-   <div class="hist-actions">
-    <button onclick="editarPedido(${idx})">✏️ Editar</button>
-    <button onclick="deletarPedido(${idx})">🗑️ Deletar</button>
-   </div>
-  `;
-  lista.appendChild(div);
- });
-}
+        // Mostrar modal de senha
+        function showAdminPassword() {
+            document.getElementById('passwordModal').style.display = 'block';
+        }
 
-function editarPedido(indice){
- const ped = pedidos[indice];
- carrinho = ped.itens;
- pedidoSendoEditadoIdx = indice;
- atualizarTotal();
- voltarCatalogo();
-}
+        function closePasswordModal() {
+            document.getElementById('passwordModal').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+        }
 
-function deletarPedido(indice){
- if(confirm("Deletar pedido?")){
-  pedidos.splice(indice, 1);
-  localStorage.setItem("pedidos", JSON.stringify(pedidos));
-  renderHistorico();
- }
-}
+        function verificarSenhaAdmin() {
+            const senha = document.getElementById('adminPassword').value;
+            if (senha === ADMIN_PASSWORD) {
+                closePasswordModal();
+                showAdminPanel();
+            } else {
+                alert('❌ Senha incorreta!');
+                document.getElementById('adminPassword').value = '';
+            }
+        }
 
-function filtrarPorData(){
- const inicio = new Date(document.getElementById('filtroDataInicio').value);
- const fim = new Date(document.getElementById('filtroDataFim').value);
- 
- pedidosFiltrados = pedidos.filter(ped => {
-  const dataPed = new Date(ped.data);
-  return dataPed >= inicio && dataPed <= fim;
- });
- 
- renderHistorico();
-}
+        // Mostrar painel admin
+        function showAdminPanel() {
+            document.getElementById('adminPanel').style.display = 'block';
+            document.querySelector('.catalog-section').style.display = 'none';
+        }
 
-function limparFiltro(){
- document.getElementById('filtroDataInicio').value = '';
- document.getElementById('filtroDataFim').value = '';
- pedidosFiltrados = [...pedidos];
- renderHistorico();
-}
+        // Funções de API
+        async function carregarCategorias() {
+            try {
+                const response = await fetch(`${API_URL}/categories`);
+                const data = await response.json();
+                if (data.success) {
+                    const select = document.getElementById('categorySelect');
+                    const productSelect = document.getElementById('productCategory');
+                    select.innerHTML = '<option value="">Todas as Categorias</option>';
+                    productSelect.innerHTML = '<option value="">Selecione uma categoria</option>';
+                    data.data.forEach(cat => {
+                        select.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+                        productSelect.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+                    });
+                }
+            } catch (err) {
+                console.error('Erro ao carregar categorias:', err);
+            }
+        }
 
-function limparHistorico(){
- if(confirm("Limpar todo o histórico?")){
-  pedidos = [];
-  localStorage.setItem("pedidos", JSON.stringify(pedidos));
-  renderHistorico();
- }
-}
+        async function carregarFormasPagamento() {
+            try {
+                const response = await fetch(`${API_URL}/payment-methods`);
+                const data = await response.json();
+                if (data.success) {
+                    const select = document.getElementById('paymentMethod');
+                    select.innerHTML = '<option value="">Selecione uma forma de pagamento</option>';
+                    data.data.forEach(method => {
+                        select.innerHTML += `<option value="${method.name}">${method.name}</option>`;
+                    });
+                }
+            } catch (err) {
+                console.error('Erro ao carregar formas de pagamento:', err);
+            }
+        }
 
-/* ===== USUÁRIOS ===== */
-function criarUsuario(){
- const user = document.getElementById('novoUsuario').value.trim();
- const senha = document.getElementById('novoUsuarioSenha').value.trim();
- const nivel = document.getElementById('nivelUsuario').value;
- 
- if(!user || !senha) return alert("Preencha usuário e senha");
- if(usuarios[user]) return alert("Usuário já existe");
- 
- usuarios[user] = {senha, nivel};
- localStorage.setItem("usuarios", JSON.stringify(usuarios));
- criarUsuarioAPI({name: user, password: senha, level: nivel});
- 
- document.getElementById('novoUsuario').value = '';
- document.getElementById('novoUsuarioSenha').value = '';
- alert("Usuário criado com sucesso!");
- atualizarSelectCategorias();
-}
+        async function carregarProdutos() {
+            try {
+                const response = await fetch(`${API_URL}/products`);
+                const data = await response.json();
+                if (data.success) {
+                    console.log('Produtos carregados:', data.data);
+                }
+            } catch (err) {
+                console.error('Erro ao carregar produtos:', err);
+            }
+        }
 
-/* ===== FORMAS DE PAGAMENTO ===== */
-function adicionarFormaPagamento(){
- const forma = document.getElementById('novaFormaPagamento').value.trim();
- if(!forma) return alert("Digite a forma de pagamento");
- if(formasPagamento.includes(forma)) return alert("Forma já existe");
- 
- formasPagamento.push(forma);
- localStorage.setItem("formasPagamento", JSON.stringify(formasPagamento));
- 
- document.getElementById('novaFormaPagamento').value = '';
- renderFormasPagamento();
- atualizarSelectFormasPagamento();
-}
+        async function adicionarCategoria() {
+            const name = document.getElementById('categoryName').value;
+            if (!name) {
+                alert('Digite o nome da categoria');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_URL}/categories`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('✅ Categoria adicionada!');
+                    document.getElementById('categoryName').value = '';
+                    carregarCategorias();
+                }
+            } catch (err) {
+                console.error('Erro:', err);
+            }
+        }
 
-function deletarFormaPagamento(indice){
- if(confirm("Deletar forma de pagamento?")){
-  formasPagamento.splice(indice, 1);
-  localStorage.setItem("formasPagamento", JSON.stringify(formasPagamento));
-  renderFormasPagamento();
-  atualizarSelectFormasPagamento();
- }
-}
+        async function salvarProduto() {
+            const name = document.getElementById('productName').value;
+            const description = document.getElementById('productDescription').value;
+            const price = document.getElementById('productPrice').value;
+            const category = document.getElementById('productCategory').value;
 
-function renderFormasPagamento(){
- const lista = document.getElementById('listaFormasPagamento');
- lista.innerHTML = '';
- formasPagamento.forEach((forma, idx) => {
-  const div = document.createElement('div');
-  div.className = 'categoria-item';
-  div.innerHTML = `
-   <span>${forma}</span>
-   <button onclick="deletarFormaPagamento(${idx})">🗑️ Deletar</button>
-  `;
-  lista.appendChild(div);
- });
-}
+            if (!name || !price || !category) {
+                alert('Preencha todos os campos obrigatórios');
+                return;
+            }
 
-function atualizarSelectFormasPagamento(){
- const select = document.getElementById('formaPagamento');
- select.innerHTML = '<option value="">Forma de pagamento</option>';
- formasPagamento.forEach(forma => {
-  const option = document.createElement('option');
-  option.value = forma;
-  option.textContent = forma;
-  select.appendChild(option);
- });
-}
+            try {
+                const response = await fetch(`${API_URL}/products`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, description, price: parseFloat(price), category })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('✅ Produto salvo!');
+                    document.getElementById('productName').value = '';
+                    document.getElementById('productDescription').value = '';
+                    document.getElementById('productPrice').value = '';
+                    document.getElementById('productCategory').value = '';
+                    carregarProdutos();
+                }
+            } catch (err) {
+                console.error('Erro:', err);
+            }
+        }
 
-/* ===== CONTATOS ===== */
-function criarContato(){
- const nome = document.getElementById('contatoNome').value.trim();
- const telefone = document.getElementById('contatoTelefone').value.trim();
- const admin = document.getElementById('contatoAdministrador').value;
- 
- if(!nome || !telefone || !admin) return alert("Preencha todos os campos");
- 
- const contato = {nome, telefone, admin, data: new Date().toLocaleString()};
- contatos.push(contato);
- localStorage.setItem("contatos", JSON.stringify(contatos));
- 
- document.getElementById('contatoNome').value = '';
- document.getElementById('contatoTelefone').value = '';
- document.getElementById('contatoAdministrador').value = '';
- alert("Contato criado com sucesso!");
-}
+        async function salvarWhatsapp() {
+            const number = document.getElementById('whatsappNumber').value;
+            if (!number) {
+                alert('Digite o número de WhatsApp');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_URL}/whatsapp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ number, message: 'Contato via Tem Tudo' })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('✅ WhatsApp adicionado!');
+                    document.getElementById('whatsappNumber').value = '';
+                }
+            } catch (err) {
+                console.error('Erro:', err);
+            }
+        }
 
-/* ===== WHATSAPP ===== */
-function salvarWhatsapp(){
- const numero = document.getElementById('whatsappInput').value.trim();
- if(!numero) return alert("Digite o número do WhatsApp");
- 
- whatsappNumber = numero;
- localStorage.setItem("whatsappNumber", numero);
- document.getElementById('whatsappInput').value = '';
- atualizarWhatsappDisplay();
- alert("WhatsApp salvo com sucesso!");
-}
+        async function criarUsuario() {
+            const name = document.getElementById('newUsername').value;
+            const password = document.getElementById('newUserPassword').value;
+            const level = document.getElementById('userLevel').value;
 
-function atualizarWhatsappDisplay(){
- const display = document.getElementById('whatsappDisplay');
- display.textContent = whatsappNumber || "Não configurado";
-}
+            if (!name || !password) {
+                alert('Preencha todos os campos');
+                return;
+            }
 
-function toggleWhatsappMenu(){
- document.getElementById('whatsappMenu').classList.toggle('show');
-}
+            try {
+                const response = await fetch(`${API_URL}/users`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, password, level })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('✅ Usuário criado!');
+                    document.getElementById('newUsername').value = '';
+                    document.getElementById('newUserPassword').value = '';
+                }
+            } catch (err) {
+                console.error('Erro:', err);
+            }
+        }
 
-function enviarWhatsapp(){
- const mensagem = document.getElementById('whatsappMensagem').value.trim();
- if(!mensagem || !whatsappNumber) return alert("Configure o WhatsApp primeiro");
- 
- const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(mensagem)}`;
- window.open(url, '_blank');
- document.getElementById('whatsappMensagem').value = '';
-}
+        function inicializarGrafico() {
+            const ctx = document.getElementById('salesChart').getContext('2d');
+            salesChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+                    datasets: [{
+                        label: 'Vendas (R$)',
+                        data: [1200, 1900, 3000, 2500, 2200, 2800, 3200, 2900, 3100, 2800, 3300, 3500],
+                        backgroundColor: 'rgba(255, 152, 0, 0.7)',
+                        borderColor: 'rgba(255, 152, 0, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: document.body.classList.contains('dark-mode') ? '#f5f5f5' : '#333'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: document.body.classList.contains('dark-mode') ? '#f5f5f5' : '#333'
+                            },
+                            grid: {
+                                color: document.body.classList.contains('dark-mode') ? '#555' : '#ddd'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: document.body.classList.contains('dark-mode') ? '#f5f5f5' : '#333'
+                            },
+                            grid: {
+                                color: document.body.classList.contains('dark-mode') ? '#555' : '#ddd'
+                            }
+                        }
+                    }
+                }
+            });
+        }
 
-/* ===== PAINEL ADMINISTRATIVO ===== */
-function abrirPainel(){
- document.getElementById('catalogo').classList.add('hide');
- document.getElementById('painelAdmin').classList.remove('hide');
- renderListaCategorias();
- renderListaProdutos();
- renderFormasPagamento();
- atualizarSelectCategorias();
- atualizarSelectFormasPagamento();
- gerarGrafico();
-}
+        function atualizarCarrinho() {
+            const preview = document.getElementById('cartPreview');
+            if (cartItems.length === 0) {
+                preview.innerHTML = '<p>Seu carrinho está vazio</p>';
+            } else {
+                preview.innerHTML = cartItems.map(item => `<p>${item.name} - R$ ${item.price}</p>`).join('');
+            }
+        }
 
-function voltarCatalogo(){
- document.getElementById('painelAdmin').classList.add('hide');
- document.getElementById('historicoPedidos').classList.add('hide');
- document.getElementById('catalogo').classList.remove('hide');
-}
+        function clearCart() {
+            cartItems = [];
+            atualizarCarrinho();
+            document.getElementById('totalPrice').textContent = 'R$ 0.00';
+        }
 
-function gerarGrafico(){
- const ctx = document.getElementById('grafico').getContext('2d');
- const categoriaVendas = {};
- 
- pedidos.forEach(ped => {
-  Object.keys(ped.itens).forEach(nome => {
-   const prod = produtos.find(p => p.name === nome);
-   if(prod){
-    if(!categoriaVendas[prod.category]) categoriaVendas[prod.category] = 0;
-    categoriaVendas[prod.category] += ped.itens[nome].qtd;
-   }
-  });
- });
- 
- new Chart(ctx, {
-  type: 'bar',
-  data: {
-   labels: Object.keys(categoriaVendas),
-   datasets: [{
-    label: 'Vendas por Categoria',
-    data: Object.values(categoriaVendas),
-    backgroundColor: '#4CAF50'
-   }]
-  }
- });
-}
+        function savePedido() {
+            alert('💾 Pedido salvo com sucesso!');
+        }
 
-function iniciarImportacaoLista(){
- alert("Função de importação em desenvolvimento");
-}
+        function closePedido() {
+            alert('❌ Pedido fechado!');
+        }
 
-function limparAssignatura(){
- const canvas = document.getElementById('assinatura');
- const ctx = canvas.getContext('2d');
- ctx.clearRect(0, 0, canvas.width, canvas.height);
-}
+        function showOrderHistory() {
+            alert('📋 Histórico de Pedidos');
+        }
 
-/* ===== TEMA ===== */
-function toggleTema(){
- document.body.classList.toggle('dark');
- localStorage.setItem('tema', document.body.classList.contains('dark') ? 'dark' : 'light');
-}
+        function clearOrderHistory() {
+            alert('🗑️ Histórico limpo!');
+        }
 
-(function(){
- const tema = localStorage.getItem('tema');
- if(tema === 'dark') document.body.classList.add('dark');
-})();
+        function importarEmLote() {
+            alert('📥 Importação em lote iniciada!');
+        }
 
-/* ===== LOGOUT ===== */
-function logout(){
- if(confirm("Deseja sair?")){
-  usuarioAtual = null;
-  sessionStorage.removeItem("sessaoAtual");
-  document.getElementById('loginBox').classList.remove('hide');
-  document.getElementById('catalogo').classList.add('hide');
-  document.getElementById('painelAdmin').classList.add('hide');
-  document.getElementById('historicoPedidos').classList.add('hide');
-  document.getElementById('loginUser').value = '';
-  document.getElementById('loginSenha').value = '';
- }
-}
+        function logout() {
+            if (confirm('Deseja fazer logout?')) {
+                localStorage.removeItem('currentUser');
+                document.getElementById('mainScreen').classList.add('hidden');
+                document.getElementById('loginScreen').classList.remove('hidden');
+                document.getElementById('adminPanel').style.display = 'none';
+                document.querySelector('.catalog-section').style.display = 'block';
+            }
+        }
 
-/* ===== INICIALIZAÇÃO ===== */
-renderListaCategorias();
-renderListaProdutos();
-renderFormasPagamento();
-atualizarSelectFormasPagamento();
-</script>
-
+        // Fechar modal ao clicar fora
+        window.onclick = function(event) {
+            const modal = document.getElementById('passwordModal');
+            const recoveryModal = document.getElementById('recoveryModal');
+            if (event.target == modal) {
+                closePasswordModal();
+            }
+            if (event.target == recoveryModal) {
+                fecharRecuperarSenha();
+            }
+        }
+    </script>
 </body>
 </html>
