@@ -695,13 +695,7 @@ const SENHA_MESTRA = "MESTRA2026";
 let usuarios = JSON.parse(localStorage.getItem('usuarios')) || [];
 let produtos=JSON.parse(localStorage.getItem("produtos")||"[]");
 
-// Verificar se há dados para migrar
-window.addEventListener('load', function() {
-    const hasLocalData = localStorage.getItem('produtos') || localStorage.getItem('pedidos') || localStorage.getItem('categorias');
-    if (hasLocalData) {
-        document.getElementById('migrationAlert').style.display = 'block';
-    }
-});
+// Alerta de migração removido conforme solicitado
 let produtosIncompletos=JSON.parse(localStorage.getItem("produtosIncompletos")||"[]");
 let pedidos=JSON.parse(localStorage.getItem("pedidos")||"[]");
 let categorias=JSON.parse(localStorage.getItem("categorias")||"[]");
