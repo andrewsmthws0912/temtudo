@@ -1173,22 +1173,41 @@ function excluirPedidoHist(i){
 function prepararLote(input){
     itensLote = [];
     const files = Array.from(input.files);
+    if (files.length === 0) return;
+    
     let carregados = 0;
-    files.forEach((file, index) => {
+    // Mostrar um feedback visual de carregamento se necessário
+    console.log(`Iniciando processamento de ${files.length} arquivos...`);
+
+    files.forEach((file) => {
         const reader = new FileReader();
         reader.onload = (e) => {
-            const jaExiste = produtos.find(p => p.img === e.target.result || p.desc === file.name.split('.')[0]);
+            // Limpa o nome do arquivo para usar como descrição (remove extensão e substitui hífens/underscores por espaços)
+            let nomeLimpo = file.name.split('.').slice(0, -1).join('.')
+                            .replace(/[_-]/g, ' ')
+                            .trim();
+            
+            // Tenta capitalizar a primeira letra de cada palavra
+            nomeLimpo = nomeLimpo.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+
+            const jaExiste = produtos.find(p => p.desc.toLowerCase() === nomeLimpo.toLowerCase());
+            
             itensLote.push({ 
                 img: e.target.result, 
-                desc: file.name.split('.')[0], 
+                desc: nomeLimpo, 
                 preco: "", 
                 ean: "",
                 categoria: "",
                 duplicado: !!jaExiste 
             });
+            
             carregados++;
-            if(carregados === files.length) renderLote();
+            if(carregados === files.length) {
+                renderLote();
+                console.log("Todos os arquivos foram processados.");
+            }
         };
+        reader.onerror = () => console.error(`Erro ao ler o arquivo: ${file.name}`);
         reader.readAsDataURL(file);
     });
 }
@@ -1221,18 +1240,23 @@ function renderLote(){
     });
 }
 
-function salvarLote(){
+async function salvarLote(){
     const timestamp = new Date().toLocaleString('pt-BR');
     let count = 0;
     let pulados = 0;
     let incompletos = 0;
-    itensLote.forEach(item => {
-        const duplicadoReal = produtos.find(p => (item.ean && p.ean === item.ean) || (p.desc === item.desc && p.img === item.img));
+
+    for (const item of itensLote) {
+        const duplicadoReal = produtos.find(p => 
+            (item.ean && p.ean === item.ean) || 
+            (p.desc.toLowerCase() === item.desc.toLowerCase())
+        );
+
         if(!duplicadoReal && item.desc && item.preco){
             produtos.push({
                 desc: item.desc,
                 preco: parseFloat(item.preco.replace(',', '.')),
-                ean: item.ean || "LOTE",
+                ean: item.ean || "",
                 categoria: item.categoria || "",
                 img: item.img,
                 criadoEm: timestamp,
@@ -1252,14 +1276,19 @@ function salvarLote(){
         } else {
             pulados++;
         }
-    });
+    }
+
+    // Salva no localStorage (que agora sincroniza com o Neon automaticamente)
     localStorage.setItem("produtos", JSON.stringify(produtos));
     localStorage.setItem("produtosIncompletos", JSON.stringify(produtosIncompletos));
+    
     areaLote.classList.add("hide");
     pLote.value = "";
+    
     let msg = `${count} produtos cadastrados com sucesso!`;
-    if(incompletos > 0) msg += ` (${incompletos} produtos incompletos salvos para edição)`;
-    if(pulados > 0) msg += ` (${pulados} itens ignorados por serem duplicados)`;
+    if(incompletos > 0) msg += `\n${incompletos} produtos incompletos salvos para edição posterior.`;
+    if(pulados > 0) msg += `\n${pulados} itens ignorados (já existem no sistema).`;
+    
     alert(msg);
     atualizarAdmin();
     renderCatalogo();
