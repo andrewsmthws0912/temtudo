@@ -2,7 +2,6 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<h1>🛒 Tem Tudo – Utilidades e Variedades 🛒 </h1>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -490,13 +489,11 @@ body.dark .categoria-item {
 <body>
 
 <header>
-<h1>🛒 Tem Tudo – Utilidades e Variedades</h1>
-<div id="migrationAlert" style="display:none;background:#fff3cd;color:#856404;padding:10px;margin-top:10px;border-radius:5px;">
-  <strong>🔄 Dados Locais Detectados!</strong> 
-  <button onclick="migrateData()" style="background:#ffc107;color:#000;padding:5px 10px;margin-left:10px;border:none;border-radius:3px;cursor:pointer;">Migrar Agora</button>
-</div>
-<button onclick="toggleTheme()">🌗 Claro / Escuro</button>
+    <h1 onclick="homeSmartClick()" style="cursor: pointer; margin: 0; display: inline-block;" title="Início / Atualizar">
+        🛒 Tem Tudo – Utilidades e Variedades 🛒
+    </h1>
 </header>
+
 
 <!-- LOGIN -->
 <div class="section" id="loginBox">
@@ -1607,6 +1604,20 @@ function abrirAdmin(){
  atualizarWhatsappDisplay();
 }
 function voltarCatalogo(){ admin.classList.add("hide");historicoTela.classList.add("hide");catalogo.classList.remove("hide"); }
+    function homeSmartClick() {
+    // Verifica se a tela de Admin ou de Histórico está visível
+    const adminVisivel = !document.getElementById('admin').classList.contains('hide');
+    const historicoVisivel = !document.getElementById('historicoTela').classList.contains('hide');
+
+    if (adminVisivel || historicoVisivel) {
+        // Se estiver em outra tela, volta para o catálogo
+        voltarCatalogo();
+    } else {
+        // Se já estiver no catálogo, recarrega a página para atualizar dados
+        location.reload();
+    }
+}
+
 function criarUsuario(){
  let u=JSON.parse(localStorage.getItem("usuarios"));
  if(u[novoUser.value])return alert("Usuário já existe");
